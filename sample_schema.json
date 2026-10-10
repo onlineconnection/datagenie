@@ -1,0 +1,263 @@
+{
+  "tables": [
+    {
+      "name": "suppliers",
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "required": true,
+          "primary_key": true,
+          "references": null
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        },
+        {
+          "name": "contact_name",
+          "type": "text",
+          "required": false,
+          "primary_key": false,
+          "references": null
+        },
+        {
+          "name": "phone",
+          "type": "text",
+          "required": false,
+          "primary_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "name": "products",
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "required": true,
+          "primary_key": true,
+          "references": null
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        },
+        {
+          "name": "supplier_id",
+          "type": "integer",
+          "required": true,
+          "primary_key": false,
+          "references": "suppliers.id"
+        },
+        {
+          "name": "cost_price",
+          "type": "numeric",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        },
+        {
+          "name": "sale_price",
+          "type": "numeric",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        },
+        {
+          "name": "stock_quantity",
+          "type": "integer",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "name": "customers",
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "required": true,
+          "primary_key": true,
+          "references": null
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        },
+        {
+          "name": "phone",
+          "type": "text",
+          "required": false,
+          "primary_key": false,
+          "references": null
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "required": false,
+          "primary_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "name": "sales",
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "required": true,
+          "primary_key": true,
+          "references": null
+        },
+        {
+          "name": "customer_id",
+          "type": "integer",
+          "required": false,
+          "primary_key": false,
+          "references": "customers.id"
+        },
+        {
+          "name": "sale_date",
+          "type": "timestamp",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        },
+        {
+          "name": "total_amount",
+          "type": "numeric",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "name": "sale_items",
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "required": true,
+          "primary_key": true,
+          "references": null
+        },
+        {
+          "name": "sale_id",
+          "type": "integer",
+          "required": true,
+          "primary_key": false,
+          "references": "sales.id"
+        },
+        {
+          "name": "product_id",
+          "type": "integer",
+          "required": true,
+          "primary_key": false,
+          "references": "products.id"
+        },
+        {
+          "name": "quantity",
+          "type": "integer",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        },
+        {
+          "name": "unit_price",
+          "type": "numeric",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "name": "expenses",
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "required": true,
+          "primary_key": true,
+          "references": null
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        },
+        {
+          "name": "amount",
+          "type": "numeric",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        },
+        {
+          "name": "expense_date",
+          "type": "date",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        }
+      ]
+    },
+    {
+      "name": "daily_reports",
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "required": true,
+          "primary_key": true,
+          "references": null
+        },
+        {
+          "name": "report_date",
+          "type": "date",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        },
+        {
+          "name": "total_sales",
+          "type": "numeric",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        },
+        {
+          "name": "total_expenses",
+          "type": "numeric",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        },
+        {
+          "name": "net_profit",
+          "type": "numeric",
+          "required": true,
+          "primary_key": false,
+          "references": null
+        }
+      ]
+    }
+  ]
+}
