@@ -1,0 +1,13 @@
+{% extends "dash_base.html" %}
+{% block title %}{{ biz.title }}{% endblock %}
+{% block panel %}
+<p class="sub">Your database is live online. Pick a section to add and manage records.</p>
+<div class="grid">
+{% for t in biz.design.tables %}
+  <a class="card" style="text-decoration:none;color:inherit" href="{{ url_for('table_page', biz_id=biz.id, tname=t.name) }}">
+    <strong>{{ t.name | pretty }}</strong>
+    <p class="sub">{{ counts[t.name] }} record{{ '' if counts[t.name] == 1 else 's' }}</p>
+  </a>
+{% endfor %}
+</div>
+{% endblock %}

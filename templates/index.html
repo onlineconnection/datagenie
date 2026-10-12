@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Describe your business. Let AI build your database.</h1>
+<p class="sub">No SQL, no setup. Just tell us what you want to keep track of.</p>
+
+<div class="card">
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form id="f" method="post" action="{{ url_for('make_design') }}">
+    <textarea id="d" name="description" required
+      placeholder="Example: I run a supermarket. I want to manage products, suppliers, stock, sales, customers, expenses and daily profit."></textarea>
+    <div class="chips">
+      <button type="button" class="chip" data-t="I run a supermarket. I want to manage products, suppliers, stock, sales, customers, expenses and daily profit.">Supermarket</button>
+      <button type="button" class="chip" data-t="I am a farmer growing cassava and rice. I want to track what I buy, what I spend, workers, harvests, buyers and my profit.">Farm</button>
+      <button type="button" class="chip" data-t="I run a school. I want to manage students, teachers, classes, fees and exam results.">School</button>
+      <button type="button" class="chip" data-t="I run a pharmacy. I want to track medicines, expiry dates, suppliers and sales.">Pharmacy</button>
+      <button type="button" class="chip" data-t="I own a restaurant. I want to manage the menu, orders, ingredients, staff and expenses.">Restaurant</button>
+    </div>
+    <p style="margin-top:16px"><button id="go" type="submit">Design my database</button></p>
+    <div id="sp" class="spinner">Gemma is designing your database... this can take up to 30 seconds.</div>
+  </form>
+</div>
+
+<script>
+  document.querySelectorAll('.chip').forEach(function (b) {
+    b.addEventListener('click', function () { document.getElementById('d').value = b.dataset.t; });
+  });
+  document.getElementById('f').addEventListener('submit', function () {
+    var go = document.getElementById('go');
+    go.disabled = true; go.textContent = 'Designing...';
+    document.getElementById('sp').classList.add('on');
+  });
+</script>
+{% endblock %}

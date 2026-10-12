@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}DataGenie{% endblock %}</title>
+<style>
+  :root { --bg:#f6f7fb; --card:#fff; --ink:#1d2433; --muted:#667085; --brand:#5b4bdb; --line:#e4e7ee; --ok:#16a34a; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:16px 20px; font-weight:700; font-size:20px; }
+  header a { color:var(--brand); text-decoration:none; }
+  main { max-width:880px; margin:0 auto; padding:0 16px 48px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:16px; }
+  h1 { margin:8px 0; font-size:28px; }
+  p.sub { color:var(--muted); margin-top:0; }
+  textarea { width:100%; min-height:140px; padding:12px; border:1px solid var(--line); border-radius:10px; font:inherit; resize:vertical; }
+  button, .btn { background:var(--brand); color:#fff; border:0; border-radius:10px; padding:12px 20px; font:inherit; font-weight:600; cursor:pointer; text-decoration:none; display:inline-block; }
+  button:disabled { opacity:.6; cursor:wait; }
+  .btn.ghost { background:#eef0f6; color:var(--ink); }
+  .error { background:#fef2f2; color:#b42318; border:1px solid #fecaca; padding:10px 14px; border-radius:10px; margin-bottom:12px; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 0; }
+  .chip { background:#eef0f6; border:0; color:var(--ink); padding:6px 12px; border-radius:20px; font-size:14px; cursor:pointer; }
+  table { border-collapse:collapse; width:100%; font-size:15px; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; font-size:13px; }
+  .tag { font-size:12px; padding:2px 8px; border-radius:20px; background:#eef0f6; color:var(--muted); }
+  .tag.req { background:#fff4e5; color:#b45309; }
+  .tag.link { background:#e8f5ee; color:var(--ok); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:12px; }
+  .spinner { display:none; margin-top:14px; color:var(--muted); }
+  .spinner.on { display:block; }
+</style>
+</head>
+<body>
+<header><a href="{{ url_for('home') }}">DataGenie</a></header>
+<main>{% block content %}{% endblock %}</main>
+</body>
+</html>

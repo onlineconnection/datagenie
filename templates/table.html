@@ -1,0 +1,54 @@
+{% extends "dash_base.html" %}
+{% block title %}{{ table.name | pretty }}{% endblock %}
+{% block panel %}
+<div class="card">
+  <strong>Add to {{ table.name | pretty }}</strong>
+  <form method="post" action="{{ url_for('add_record', biz_id=biz.id, tname=table.name) }}" style="margin-top:12px">
+    <div class="form-grid">
+    {% for col in table.columns if not col.primary_key %}
+      <div>
+        <label>{{ col.name | pretty }}{% if col.required %} *{% endif %}</label>
+        {% if col.references %}
+          <select name="{{ col.name }}" {{ 'required' if col.required }}>
+            <option value="">Choose...</option>
+            {% for k, v in opts[col.name].items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}
+          </select>
+        {% elif col.type == 'boolean' %}
+          <input type="checkbox" name="{{ col.name }}">
+        {% else %}
+          <input type="{{ INPUT[col.type] }}" name="{{ col.name }}" {{ 'required' if col.required }} {% if col.type == 'numeric' %}step="any"{% endif %}>
+        {% endif %}
+      </div>
+    {% endfor %}
+    </div>
+    <button type="submit">Save</button>
+  </form>
+</div>
+
+<div class="card scroll">
+  <strong>{{ table.name | pretty }} records ({{ rows | length }})</strong>
+  {% if rows %}
+  <table>
+    <tr>
+      {% for col in table.columns %}<th>{{ '#' if col.primary_key else col.name | pretty }}</th>{% endfor %}
+      <th></th>
+    </tr>
+    {% for r in rows %}
+    <tr>
+      {% for col in table.columns %}
+        {% set v = r[loop.index0] %}
+        <td>{% if v is none %}{% elif col.type == 'boolean' %}{{ 'Yes' if v else 'No' }}{% elif col.references %}{{ opts[col.name].get(v, v) }}{% else %}{{ v }}{% endif %}</td>
+      {% endfor %}
+      <td>
+        <form method="post" action="{{ url_for('delete_record', biz_id=biz.id, tname=table.name, row_id=r[0]) }}" onsubmit="return confirm('Delete this record?')">
+          <button class="del" type="submit">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="sub">No records yet. Use the form above to add the first one.</p>
+  {% endif %}
+</div>
+{% endblock %}

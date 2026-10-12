@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Review your database{% endblock %}
+{% block content %}
+<h1>Here is your {{ biz.title }} database</h1>
+<p class="sub">
+  Look it over. When it looks right, click Approve and we will build it.
+  {% if secs %}<span class="tag">{{ 'designed by Gemma' if src == 'gemma' else 'template fallback' }} in {{ secs }}s</span>{% endif %}
+</p>
+
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+<div class="grid">
+{% for t in biz.design.tables %}
+  <div class="card">
+    <strong>{{ t.name | pretty }}</strong>
+    <table>
+      <tr><th>Information</th><th>Type</th></tr>
+      {% for c in t.columns if not c.primary_key %}
+      <tr>
+        <td>{{ c.name | pretty }}
+          {% if c.required %}<span class="tag req">required</span>{% endif %}
+          {% if c.references %}<span class="tag link">linked to {{ c.references.split('.')[0] | pretty }}</span>{% endif %}
+        </td>
+        <td>{{ TYPE_LABELS[c.type] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+{% endfor %}
+</div>
+
+<form id="a" method="post" action="{{ url_for('approve', biz_id=biz.id) }}">
+  <button id="ok" type="submit">Approve and build my database</button>
+  <a class="btn ghost" href="{{ url_for('home') }}">Start over</a>
+  <div id="sp" class="spinner">Building your database...</div>
+</form>
+<script>
+  document.getElementById('a').addEventListener('submit', function () {
+    document.getElementById('ok').disabled = true;
+    document.getElementById('sp').classList.add('on');
+  });
+</script>
+{% endblock %}
