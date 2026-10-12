@@ -1,10 +1,11 @@
 import os, re, json, glob, secrets
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, abort, flash, session
+from flask import Flask, render_template, request, redirect, url_for, abort, flash, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from designer import design
 from validator import validate_schema
 import db
+import genie
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY") or secrets.token_hex(32)
@@ -231,6 +232,36 @@ def use_suggestion(slug):
     biz_id = db.save_pending("Ready-made design: " + cleaned["name"], cleaned)
     db.set_owner(biz_id, session["uid"])
     return redirect(url_for("review", biz_id=biz_id, src="template"))
+
+
+@app.route("/genie/<biz_id>/plan", methods=["POST"])
+@login_required
+def genie_plan(biz_id):
+    biz = active_biz(biz_id)
+    data = request.get_json(silent=True) or {}
+    message = str(data.get("message", "")).strip()[:600]
+    if len(message) < 3:
+        return jsonify(error="Tell me what you would like to change.")
+    result = genie.plan(biz, message)
+    if result is None:
+        return jsonify(error="GenieAI took too long. Please try again.")
+    return jsonify(result)
+
+
+@app.route("/genie/<biz_id>/apply", methods=["POST"])
+@login_required
+def genie_apply(biz_id):
+    biz = active_biz(biz_id)
+    data = request.get_json(silent=True) or {}
+    actions, errors, _ = genie.check(biz, data.get("actions"))
+    if errors or not actions:
+        return jsonify(ok=False, error=" ".join(errors) or "Nothing to apply.")
+    try:
+        db.apply_actions(biz_id, actions)
+    except Exception as e:
+        print("GenieAI apply failed:", type(e).__name__, e)
+        return jsonify(ok=False, error="Could not apply the changes. Nothing was changed.")
+    return jsonify(ok=True)
 
 
 if __name__ == "__main__":

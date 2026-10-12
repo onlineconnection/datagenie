@@ -5,41 +5,56 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}DataGenie{% endblock %}</title>
 <style>
-  :root { --bg:#f6f7fb; --card:#fff; --ink:#1d2433; --muted:#667085; --brand:#5b4bdb; --line:#e4e7ee; --ok:#16a34a; }
+  :root { --bg:#f4f8ff; --soft:#e6efff; --card:#ffffff; --ink:#0b1f44; --muted:#52627f; --brand:#1d4ed8; --brand2:#1e40af; --accent:#2563eb; --line:#d5e0f5; --ok:#0f7a4a; }
   * { box-sizing:border-box; }
-  body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--ink); }
-  header { padding:16px 20px; font-weight:700; font-size:20px; }
-  header a { color:var(--brand); text-decoration:none; }
-  main { max-width:880px; margin:0 auto; padding:0 16px 48px; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:16px; }
-  h1 { margin:8px 0; font-size:28px; }
-  p.sub { color:var(--muted); margin-top:0; }
-  textarea { width:100%; min-height:140px; padding:12px; border:1px solid var(--line); border-radius:10px; font:inherit; resize:vertical; }
-  button, .btn { background:var(--brand); color:#fff; border:0; border-radius:10px; padding:12px 20px; font:inherit; font-weight:600; cursor:pointer; text-decoration:none; display:inline-block; }
-  button:disabled { opacity:.6; cursor:wait; }
-  .btn.ghost { background:#eef0f6; color:var(--ink); }
-  .error { background:#fef2f2; color:#b42318; border:1px solid #fecaca; padding:10px 14px; border-radius:10px; margin-bottom:12px; }
-  .chips { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 0; }
-  .chip { background:#eef0f6; border:0; color:var(--ink); padding:6px 12px; border-radius:20px; font-size:14px; cursor:pointer; }
+  body { margin:0; font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:var(--bg); color:var(--ink); line-height:1.5; font-weight:500; }
+  a { color:var(--brand); font-weight:700; }
+  header { background:var(--ink); }
+  .nav { display:flex; justify-content:space-between; align-items:center; max-width:1200px; margin:0 auto; padding:16px 24px; }
+  .logo { font-size:22px; font-weight:800; color:#fff; text-decoration:none; letter-spacing:-.02em; }
+  .logo i { color:#7aa7ff; font-style:normal; }
+  .nav .links { font-size:14px; color:#b8c7e6; font-weight:600; }
+  .nav .links a { color:#fff; text-decoration:none; font-weight:700; }
+  .nav .links a:hover { text-decoration:underline; }
+  main { max-width:880px; margin:0 auto; padding:30px 20px 64px; }
+  h1 { font-weight:800; font-size:34px; line-height:1.15; letter-spacing:-.03em; margin:6px 0 8px; color:var(--ink); }
+  strong { font-weight:800; }
+  p.sub, .sub { color:var(--muted); font-weight:500; }
+  p.sub { margin-top:0; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px; margin-bottom:16px; box-shadow:0 1px 3px rgba(11,31,68,.06); }
+  input, select, textarea { width:100%; padding:11px 12px; border:1.5px solid var(--line); border-radius:8px; font:inherit; font-weight:500; background:#fff; color:var(--ink); }
+  input[type=checkbox] { width:auto; }
+  textarea { min-height:140px; resize:vertical; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--brand); box-shadow:0 0 0 3px rgba(29,78,216,.15); }
+  label { display:block; font-size:13px; font-weight:700; color:var(--muted); margin-bottom:5px; }
+  button, .btn { background:var(--brand); color:#fff; border:0; border-radius:8px; padding:12px 22px; font:inherit; font-weight:700; cursor:pointer; text-decoration:none; display:inline-block; }
+  button:hover, .btn:hover { background:var(--brand2); }
+  button:disabled { opacity:.55; cursor:wait; }
+  .btn.ghost { background:#fff; color:var(--brand); border:1.5px solid var(--brand); }
+  .btn.ghost:hover { background:var(--soft); }
+  .error { background:#fdecec; color:#a4161a; border:1px solid #f5c2c4; padding:11px 14px; border-radius:8px; margin-bottom:14px; font-weight:600; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 0; }
+  .chip { background:var(--soft); border:0; color:var(--brand); padding:7px 14px; border-radius:20px; font-size:14px; font-weight:700; cursor:pointer; }
+  .chip:hover { background:#d4e3ff; }
   table { border-collapse:collapse; width:100%; font-size:15px; }
-  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
-  th { color:var(--muted); font-weight:600; font-size:13px; }
-  .tag { font-size:12px; padding:2px 8px; border-radius:20px; background:#eef0f6; color:var(--muted); }
-  .tag.req { background:#fff4e5; color:#b45309; }
-  .tag.link { background:#e8f5ee; color:var(--ok); }
-  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:12px; }
-  .spinner { display:none; margin-top:14px; color:var(--muted); }
+  th, td { text-align:left; padding:10px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
+  .tag { font-size:11px; padding:3px 9px; border-radius:20px; background:var(--soft); color:var(--brand); font-weight:700; }
+  .tag.req { background:#fff1dd; color:#a85a00; }
+  .tag.link { background:#dff3e9; color:var(--ok); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:14px; }
+  .spinner { display:none; margin-top:14px; color:var(--muted); font-weight:600; }
   .spinner.on { display:block; }
 </style>
 </head>
 <body>
-<header style="display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto">
-  <a href="{{ url_for('home') }}">DataGenie</a>
-  <span style="font-size:14px;font-weight:400">
-  {% if session.get('uid') %}<a href="{{ url_for('my') }}">My databases</a> &middot; {{ session.get('email') }} &middot; <a href="{{ url_for('logout') }}">Log out</a>
+<header><div class="nav">
+  <a class="logo" href="{{ url_for('home') }}">Data<i>Genie</i></a>
+  <span class="links">
+  {% if session.get('uid') %}<a href="{{ url_for('my') }}">My databases</a> &nbsp;·&nbsp; {{ session.get('email') }} &nbsp;·&nbsp; <a href="{{ url_for('logout') }}">Log out</a>
   {% else %}<a href="{{ url_for('login') }}">Log in</a>{% endif %}
   </span>
-</header>
+</div></header>
 <main>{% block content %}{% endblock %}</main>
 </body>
 </html>

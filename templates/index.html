@@ -1,13 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Describe your business. Let AI build your database.</h1>
-<p class="sub">No SQL, no setup. Just tell us what you want to keep track of.</p>
-
+<style>
+  .hero { background:var(--brand); color:#fff; border-radius:16px; padding:40px 36px; margin-bottom:22px; }
+  .hero h1 { color:#fff; font-size:40px; margin:0 0 10px; }
+  .hero p { margin:0; color:#cfdcff; font-size:18px; font-weight:600; max-width:560px; }
+  .actions { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:18px; }
+</style>
+<div class="hero">
+  <h1>Describe your business.<br>Let AI build your database.</h1>
+  <p>No SQL and no setup. Tell us what you want to keep track of.</p>
+</div>
 <div class="card">
   {% if error %}<div class="error">{{ error }}</div>{% endif %}
   <form id="f" method="post" action="{{ url_for('make_design') }}">
-    <textarea id="d" name="description" required
-      placeholder="Example: I run a supermarket. I want to manage products, suppliers, stock, sales, customers, expenses and daily profit."></textarea>
+    <label>Your business</label>
+    <textarea id="d" name="description" required placeholder="Example: I run a supermarket. I want to manage products, suppliers, stock, sales, customers, expenses and daily profit."></textarea>
     <div class="chips">
       <button type="button" class="chip" data-t="I run a supermarket. I want to manage products, suppliers, stock, sales, customers, expenses and daily profit.">Supermarket</button>
       <button type="button" class="chip" data-t="I am a farmer growing cassava and rice. I want to track what I buy, what I spend, workers, harvests, buyers and my profit.">Farm</button>
@@ -15,11 +22,13 @@
       <button type="button" class="chip" data-t="I run a pharmacy. I want to track medicines, expiry dates, suppliers and sales.">Pharmacy</button>
       <button type="button" class="chip" data-t="I own a restaurant. I want to manage the menu, orders, ingredients, staff and expenses.">Restaurant</button>
     </div>
-    <p style="margin-top:16px"><button id="go" type="submit">Design my database</button> <a class="btn ghost" href="{{ url_for('suggestions') }}">Database Suggestions</a></p>
-    <div id="sp" class="spinner">Gemma is designing your database... this can take up to 30 seconds.</div>
+    <div class="actions">
+      <button id="go" type="submit">Design my database</button>
+      <a class="btn ghost" href="{{ url_for('suggestions') }}">Database Suggestions</a>
+    </div>
+    <div id="sp" class="spinner">Gemma is designing your database. This can take up to 45 seconds.</div>
   </form>
 </div>
-
 <script>
   document.querySelectorAll('.chip').forEach(function (b) {
     b.addEventListener('click', function () { document.getElementById('d').value = b.dataset.t; });

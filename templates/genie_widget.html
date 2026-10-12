@@ -1,0 +1,142 @@
+<style>
+  .g-fab { position:fixed; right:22px; bottom:22px; z-index:50; display:flex; align-items:center; gap:10px; background:var(--ink); color:#fff; border:0; border-radius:30px; padding:9px 20px 9px 9px; font-weight:800; font-size:15px; box-shadow:0 8px 24px rgba(11,31,68,.35); cursor:pointer; }
+  .g-fab:hover { background:var(--brand); }
+  .g-mark { width:34px; height:34px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:17px; }
+  .g-panel { position:fixed; right:22px; bottom:86px; z-index:50; width:390px; max-width:calc(100vw - 28px); height:540px; max-height:calc(100vh - 110px); background:#fff; border:1px solid var(--line); border-radius:16px; box-shadow:0 18px 50px rgba(11,31,68,.28); display:none; flex-direction:column; overflow:hidden; }
+  .g-panel.open { display:flex; }
+  .g-head { background:var(--ink); color:#fff; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; }
+  .g-head b { font-size:17px; font-weight:800; }
+  .g-head span { display:block; font-size:12px; color:#b8c7e6; font-weight:600; }
+  .g-x { background:none; padding:2px 10px; font-size:24px; line-height:1; color:#fff; }
+  .g-x:hover { background:rgba(255,255,255,.15); }
+  .g-log { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; background:var(--bg); }
+  .g-msg { max-width:88%; padding:10px 13px; border-radius:12px; font-size:14px; font-weight:600; line-height:1.4; white-space:pre-wrap; }
+  .g-bot { background:#fff; border:1px solid var(--line); align-self:flex-start; }
+  .g-me { background:var(--brand); color:#fff; align-self:flex-end; }
+  .g-warn { background:#fff6e5; border-color:#f2d9a6; color:#8a5200; }
+  .g-plan { background:#fff; border:1.5px solid var(--brand); border-radius:12px; padding:12px 14px; align-self:stretch; }
+  .g-plan b { font-size:12px; text-transform:uppercase; letter-spacing:.07em; color:var(--brand); }
+  .g-plan ul { margin:8px 0 12px; padding-left:18px; font-size:14px; font-weight:600; }
+  .g-plan li { margin-bottom:4px; }
+  .g-plan li.danger { color:#a4161a; }
+  .g-btns { display:flex; gap:8px; }
+  .g-btns button { padding:9px 16px; font-size:14px; }
+  .g-chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .g-chip { background:var(--soft); color:var(--brand); border:0; padding:7px 12px; border-radius:16px; font-size:13px; font-weight:700; cursor:pointer; text-align:left; }
+  .g-chip:hover { background:#d4e3ff; }
+  .g-form { display:flex; gap:8px; padding:12px; border-top:1px solid var(--line); background:#fff; }
+  .g-form button { padding:10px 18px; }
+  @media (max-width:520px) { .g-panel { right:14px; left:14px; width:auto; max-width:none; } }
+</style>
+
+<button class="g-fab" id="gFab" type="button"><span class="g-mark">G</span>GenieAI</button>
+
+<div class="g-panel" id="gPanel">
+  <div class="g-head">
+    <div><b>GenieAI</b><span>Change your database by chatting</span></div>
+    <button class="g-x" id="gClose" type="button">&times;</button>
+  </div>
+  <div class="g-log" id="gLog">
+    <div class="g-msg g-bot">Hi, I am GenieAI. Tell me how you want to change your database and I will show you the changes before anything happens.</div>
+    <div class="g-chips">
+      <button type="button" class="g-chip" data-t="Add a table to track payments">Add a table to track payments</button>
+      <button type="button" class="g-chip" data-t="Add a notes field to {{ biz.design.tables[0].name | pretty }}">Add a notes field to {{ biz.design.tables[0].name | pretty }}</button>
+      <button type="button" class="g-chip" data-t="Delete the {{ biz.design.tables[-1].name | pretty }} table">Delete the {{ biz.design.tables[-1].name | pretty }} table</button>
+    </div>
+  </div>
+  <form class="g-form" id="gForm">
+    <input id="gInput" placeholder="Tell GenieAI what to change" autocomplete="off" maxlength="600">
+    <button type="submit" id="gSend">Send</button>
+  </form>
+</div>
+
+<script>
+(function () {
+  var fab = document.getElementById('gFab'), panel = document.getElementById('gPanel');
+  var log = document.getElementById('gLog'), form = document.getElementById('gForm');
+  var input = document.getElementById('gInput'), send = document.getElementById('gSend');
+  var planUrl = "{{ url_for('genie_plan', biz_id=biz.id) }}";
+  var applyUrl = "{{ url_for('genie_apply', biz_id=biz.id) }}";
+  var homeUrl = "{{ url_for('dashboard', biz_id=biz.id) }}";
+  var busy = false;
+
+  function msg(text, cls) {
+    var d = document.createElement('div');
+    d.className = 'g-msg ' + (cls || 'g-bot');
+    d.textContent = text;
+    log.appendChild(d);
+    log.scrollTop = log.scrollHeight;
+    return d;
+  }
+  function post(url, body) {
+    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json(); });
+  }
+  function setBusy(b) { busy = b; send.disabled = b; input.disabled = b; if (!b) input.focus(); }
+
+  function showPlan(data) {
+    var box = document.createElement('div');
+    box.className = 'g-plan';
+    var h = document.createElement('b'); h.textContent = 'Proposed changes'; box.appendChild(h);
+    var ul = document.createElement('ul');
+    data.descriptions.forEach(function (t) {
+      var li = document.createElement('li');
+      li.textContent = t;
+      if (/^Delete/.test(t)) li.className = 'danger';
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+    var btns = document.createElement('div'); btns.className = 'g-btns';
+    var ok = document.createElement('button'); ok.type = 'button'; ok.textContent = 'Apply changes';
+    var no = document.createElement('button'); no.type = 'button'; no.className = 'btn ghost'; no.textContent = 'Cancel';
+    ok.onclick = function () {
+      ok.disabled = true; no.disabled = true;
+      var w = msg('Applying changes...');
+      post(applyUrl, { actions: data.actions }).then(function (res) {
+        w.remove();
+        if (res.ok) {
+          msg('Done. Updating your dashboard...');
+          setTimeout(function () { location.href = homeUrl; }, 900);
+        } else {
+          msg(res.error || 'Something went wrong.', 'g-msg g-bot g-warn');
+          ok.disabled = false; no.disabled = false;
+        }
+      }).catch(function () {
+        w.remove();
+        msg('Could not reach the server.', 'g-msg g-bot g-warn');
+        ok.disabled = false; no.disabled = false;
+      });
+    };
+    no.onclick = function () { box.remove(); msg('Cancelled. Nothing was changed.'); };
+    btns.appendChild(ok); btns.appendChild(no); box.appendChild(btns);
+    log.appendChild(box);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var text = input.value.trim();
+    if (!text || busy) return;
+    input.value = '';
+    msg(text, 'g-me');
+    var wait = msg('GenieAI is thinking. This can take up to 45 seconds.');
+    setBusy(true);
+    post(planUrl, { message: text }).then(function (d) {
+      wait.remove();
+      if (d.error) { msg(d.error, 'g-msg g-bot g-warn'); return; }
+      if (d.reply) msg(d.reply);
+      (d.errors || []).forEach(function (t) { msg(t, 'g-msg g-bot g-warn'); });
+      if (d.actions && d.actions.length) showPlan(d);
+    }).catch(function () {
+      wait.remove();
+      msg('Could not reach GenieAI. Check your connection.', 'g-msg g-bot g-warn');
+    }).then(function () { setBusy(false); });
+  });
+
+  document.querySelectorAll('.g-chip').forEach(function (c) {
+    c.addEventListener('click', function () { input.value = c.dataset.t; input.focus(); });
+  });
+  fab.addEventListener('click', function () { panel.classList.toggle('open'); if (panel.classList.contains('open')) input.focus(); });
+  document.getElementById('gClose').addEventListener('click', function () { panel.classList.remove('open'); });
+})();
+</script>

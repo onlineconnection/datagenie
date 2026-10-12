@@ -273,3 +273,51 @@ def list_businesses(owner_id):
             "select id, title, status from datagenie_businesses where owner_id=%s order by created_at desc",
             (owner_id,)).fetchall()
     return [dict(zip(["id", "title", "status"], r)) for r in rows]
+
+
+def table_count(biz, tname):
+    q = sql.SQL("select count(*) from {}.{}").format(sql.Identifier(biz["pg_schema"]), sql.Identifier(tname))
+    with connect() as c:
+        return c.execute(q).fetchone()[0]
+
+
+def _col_sql(pg_schema, col):
+    piece = sql.SQL("{} {}").format(sql.Identifier(col["name"]), sql.SQL(TYPE_SQL[col["type"]]))
+    if col["required"]:
+        piece += sql.SQL(" not null")
+    if col["references"]:
+        rt, rc = col["references"].split(".")
+        piece += sql.SQL(" references {}.{} ({})").format(
+            sql.Identifier(pg_schema), sql.Identifier(rt), sql.Identifier(rc))
+    return piece
+
+
+def apply_actions(biz_id, actions):
+    biz = get_business(biz_id)
+    design, pg = biz["design"], biz["pg_schema"]
+    with connect() as c:
+        for a in actions:
+            op, tname = a["op"], a["table"]
+            if op == "add_table":
+                parts = [sql.SQL("{} integer generated always as identity primary key").format(sql.Identifier("id"))]
+                parts += [_col_sql(pg, col) for col in a["columns"] if col["name"] != "id"]
+                c.execute(sql.SQL("create table {}.{} ({})").format(
+                    sql.Identifier(pg), sql.Identifier(tname), sql.SQL(", ").join(parts)))
+                design["tables"].append({"name": tname, "columns": a["columns"]})
+            elif op == "drop_table":
+                c.execute(sql.SQL("drop table {}.{}").format(sql.Identifier(pg), sql.Identifier(tname)))
+                design["tables"] = [t for t in design["tables"] if t["name"] != tname]
+            elif op == "add_column":
+                col = a["column"]
+                c.execute(sql.SQL("alter table {}.{} add column {}").format(
+                    sql.Identifier(pg), sql.Identifier(tname), _col_sql(pg, col)))
+                for t in design["tables"]:
+                    if t["name"] == tname:
+                        t["columns"].append(col)
+            elif op == "drop_column":
+                c.execute(sql.SQL("alter table {}.{} drop column {}").format(
+                    sql.Identifier(pg), sql.Identifier(tname), sql.Identifier(a["column"])))
+                for t in design["tables"]:
+                    if t["name"] == tname:
+                        t["columns"] = [x for x in t["columns"] if x["name"] != a["column"]]
+        c.execute("update datagenie_businesses set design=%s where id=%s", (json.dumps(design), biz_id))

@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
 <style>
-  main{max-width:1200px}
-  .dash{display:grid;grid-template-columns:210px 1fr;gap:20px;align-items:start}
-  .side a{display:block;padding:10px 12px;border-radius:10px;color:var(--ink);text-decoration:none}
-  .side a:hover,.side a.on{background:#eef0f6;font-weight:600}
-  .scroll{overflow-x:auto}
-  .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-bottom:14px}
-  label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
-  input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
-  input[type=checkbox]{width:auto}
-  .del{background:#fef2f2;color:#b42318;padding:6px 10px;font-size:13px}
-  .ok{background:#ecfdf3;color:#067647;border:1px solid #abefc6;padding:10px 14px;border-radius:10px;margin-bottom:12px}
-  @media(max-width:720px){.dash{grid-template-columns:1fr}}
+  main { max-width:1200px; }
+  .dash { display:grid; grid-template-columns:220px 1fr; gap:20px; align-items:start; }
+  .side { padding:10px; }
+  .side a { display:block; padding:10px 12px; border-radius:8px; color:var(--ink); text-decoration:none; font-weight:700; }
+  .side a:hover, .side a.on { background:var(--soft); color:var(--brand); }
+  .side hr { border:0; border-top:1px solid var(--line); margin:8px 0; }
+  .scroll { overflow-x:auto; }
+  .form-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:14px; margin-bottom:16px; }
+  .del { background:#fdecec; color:#a4161a; padding:6px 12px; font-size:13px; }
+  .del:hover { background:#f8d4d4; }
+  .ok { background:#dff3e9; color:#0f7a4a; border:1px solid #b9dfca; padding:11px 14px; border-radius:8px; margin-bottom:14px; font-weight:600; }
+  @media (max-width:720px) { .dash { grid-template-columns:1fr; } }
 </style>
 <h1>{{ biz.title }}</h1>
 <div class="dash">
@@ -21,6 +21,7 @@
     {% for t in biz.design.tables %}
     <a href="{{ url_for('table_page', biz_id=biz.id, tname=t.name) }}" class="{{ 'on' if current == t.name }}">{{ t.name | pretty }}</a>
     {% endfor %}
+    <hr>
     <a href="{{ url_for('view', biz_id=biz.id) }}" target="_blank">View final product ↗</a>
   </nav>
   <section>
@@ -30,4 +31,5 @@
     {% block panel %}{% endblock %}
   </section>
 </div>
+{% include "genie_widget.html" %}
 {% endblock %}
