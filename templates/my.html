@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}My databases{% endblock %}
+{% block content %}
+<h1>My databases</h1>
+<p><a class="btn" href="{{ url_for('home') }}">+ Create a new database</a></p>
+{% if items %}
+<div class="grid">
+  {% for b in items %}
+  <div class="card">
+    <strong>{{ b.title }}</strong>
+    <p class="sub">{{ 'Live' if b.status == 'active' else 'Waiting for your approval' }}</p>
+    {% if b.status == 'active' %}
+      <a class="btn" href="{{ url_for('dashboard', biz_id=b.id) }}">Manage</a>
+      <a class="btn ghost" href="{{ url_for('view', biz_id=b.id) }}">View</a>
+    {% else %}
+      <a class="btn ghost" href="{{ url_for('review', biz_id=b.id) }}">Review</a>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="sub">You have no databases yet. Click the button above and describe your business.</p>
+{% endif %}
+{% endblock %}

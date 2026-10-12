@@ -225,3 +225,51 @@ def search_rows(biz, table, term, limit=200):
     q = q + sql.SQL(" order by id desc limit %s")
     with connect() as c:
         return c.execute(q, params + [limit]).fetchall()
+
+
+# ---------- accounts ----------
+def init_users():
+    with connect() as c:
+        c.execute("""
+            create table if not exists datagenie_users (
+                id serial primary key,
+                email text unique not null,
+                password_hash text not null,
+                created_at timestamptz not null default now()
+            )""")
+        c.execute("alter table datagenie_businesses add column if not exists owner_id integer")
+
+
+def create_user(email, pw_hash):
+    try:
+        with connect() as c:
+            return c.execute(
+                "insert into datagenie_users (email, password_hash) values (%s,%s) returning id",
+                (email, pw_hash)).fetchone()[0]
+    except psycopg.errors.UniqueViolation:
+        return None
+
+
+def user_by_email(email):
+    with connect() as c:
+        return c.execute("select id, email, password_hash from datagenie_users where email=%s",
+                         (email,)).fetchone()
+
+
+def set_owner(biz_id, owner_id):
+    with connect() as c:
+        c.execute("update datagenie_businesses set owner_id=%s where id=%s", (owner_id, biz_id))
+
+
+def owner_of(biz_id):
+    with connect() as c:
+        row = c.execute("select owner_id from datagenie_businesses where id=%s", (biz_id,)).fetchone()
+    return row[0] if row else None
+
+
+def list_businesses(owner_id):
+    with connect() as c:
+        rows = c.execute(
+            "select id, title, status from datagenie_businesses where owner_id=%s order by created_at desc",
+            (owner_id,)).fetchall()
+    return [dict(zip(["id", "title", "status"], r)) for r in rows]

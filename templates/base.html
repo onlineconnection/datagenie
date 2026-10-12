@@ -33,7 +33,13 @@
 </style>
 </head>
 <body>
-<header><a href="{{ url_for('home') }}">DataGenie</a></header>
+<header style="display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto">
+  <a href="{{ url_for('home') }}">DataGenie</a>
+  <span style="font-size:14px;font-weight:400">
+  {% if session.get('uid') %}<a href="{{ url_for('my') }}">My databases</a> &middot; {{ session.get('email') }} &middot; <a href="{{ url_for('logout') }}">Log out</a>
+  {% else %}<a href="{{ url_for('login') }}">Log in</a>{% endif %}
+  </span>
+</header>
 <main>{% block content %}{% endblock %}</main>
 </body>
 </html>
