@@ -28,16 +28,9 @@
 <h1>{{ biz.title }}</h1>
 <p class="sub">
   Live data from your online database.
-  <a href="{{ url_for('dashboard', biz_id=biz.id) }}">Manage data</a>
+  <a class="btn" href="{{ url_for('dashboard', biz_id=biz.id) }}">Manage data</a>
+  <a class="btn ghost" href="{{ url_for('export_xlsx', biz_id=biz.id) }}">Download Excel</a>
 </p>
-
-<form method="post" action="{{ url_for('set_currency_route', biz_id=biz.id) }}" style="margin-bottom:14px">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label class="sub">Currency</label>
-  <select name="currency" onchange="this.form.submit()">
-    {% for c in CURRENCIES %}<option value="{{ c }}" {{ 'selected' if c == currency }}>{{ c }}</option>{% endfor %}
-  </select>
-</form>
 
 {% if totals %}
 <div class="stats">
@@ -46,32 +39,6 @@
   {% endfor %}
 </div>
 {% endif %}
-
-<div class="card" style="margin-bottom:14px">
-  <div class="sub">Share a read-only public page</div>
-  <form method="post" action="{{ url_for('share_toggle', biz_id=biz.id) }}" style="margin-top:8px">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    {% if share_url %}
-    <input readonly value="{{ share_url }}" onclick="this.select()" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit">
-    {% if share_qr %}<div style="width:170px;margin:12px 0">{{ share_qr | safe }}</div>{% endif %}
-    <button class="btn danger" name="action" value="off" type="submit">Stop sharing</button>
-    {% else %}
-    <button class="btn" name="action" value="on" type="submit">Create share link</button>
-    {% endif %}
-  </form>
-</div>
-
-{% set bc = count_bars(biz, counts) %}{% set bt = bars(totals) %}
-<div class="charts">
-  <div class="card"><div class="sub">Records per table</div>
-    {% for b in bc %}<div class="brow"><span class="bl">{{ b.label }}</span><span class="bt"><i style="width:{{ b.pct }}%"></i></span><span class="bv">{{ b.value }}</span></div>{% endfor %}
-  </div>
-  {% if bt %}
-  <div class="card"><div class="sub">Money totals</div>
-    {% for b in bt %}<div class="brow"><span class="bl">{{ b.label }}</span><span class="bt"><i style="width:{{ b.pct }}%"></i></span><span class="bv">{{ money(b.value, currency) }}</span></div>{% endfor %}
-  </div>
-  {% endif %}
-</div>
 
 <div class="tabs">
   {% for t in biz.design.tables %}
@@ -104,4 +71,43 @@
   <p class="sub">{{ 'No matches.' if q else 'No records yet.' }}</p>
   {% endif %}
 </div>
+<details class="card settings-box" style="margin-top:16px">
+  <summary style="cursor:pointer;font-weight:700">Charts, sharing and currency</summary>
+  <div style="margin-top:14px">
+<form method="post" action="{{ url_for('set_currency_route', biz_id=biz.id) }}" style="margin-bottom:14px">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label class="sub">Currency</label>
+  <select name="currency" onchange="this.form.submit()">
+    {% for c in CURRENCIES %}<option value="{{ c }}" {{ 'selected' if c == currency }}>{{ c }}</option>{% endfor %}
+  </select>
+</form>
+
+<div class="card" style="margin-bottom:14px">
+  <div class="sub">Share a read-only public page</div>
+  <form method="post" action="{{ url_for('share_toggle', biz_id=biz.id) }}" style="margin-top:8px">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if share_url %}
+    <input readonly value="{{ share_url }}" onclick="this.select()" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit">
+    {% if share_qr %}<div style="width:170px;margin:12px 0">{{ share_qr | safe }}</div>{% endif %}
+    <button class="btn danger" name="action" value="off" type="submit">Stop sharing</button>
+    {% else %}
+    <button class="btn" name="action" value="on" type="submit">Create share link</button>
+    {% endif %}
+  </form>
+</div>
+
+{% set bc = count_bars(biz, counts) %}{% set bt = bars(totals) %}
+<div class="charts">
+  <div class="card"><div class="sub">Records per table</div>
+    {% for b in bc %}<div class="brow"><span class="bl">{{ b.label }}</span><span class="bt"><i style="width:{{ b.pct }}%"></i></span><span class="bv">{{ b.value }}</span></div>{% endfor %}
+  </div>
+  {% if bt %}
+  <div class="card"><div class="sub">Money totals</div>
+    {% for b in bt %}<div class="brow"><span class="bl">{{ b.label }}</span><span class="bt"><i style="width:{{ b.pct }}%"></i></span><span class="bv">{{ money(b.value, currency) }}</span></div>{% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+  </div>
+</details>
 {% endblock %}

@@ -302,12 +302,13 @@ def view(biz_id):
     biz = active_biz(biz_id)
     table = db.get_table(biz, request.args.get("t", "")) or biz["design"]["tables"][0]
     q = (request.args.get("q") or "").strip()[:100]
+    _sh = share_info(biz_id)
     return render_template("view.html", biz=biz, table=table, q=q,
                            rows=db.search_rows(biz, table, q),
                            opts=db.fk_options(biz, table),
                            counts=db.row_counts(biz), totals=db.totals(biz),
                            currency=db.get_currency(biz_id),
-                           share_url=share_info(biz_id)[0], share_qr=share_info(biz_id)[1])
+                           share_url=_sh[0], share_qr=_sh[1])
 
 
 @app.route("/currency/<biz_id>", methods=["POST"])
@@ -359,6 +360,19 @@ def public_view(token):
                                          currency=db.get_currency(biz["id"])))
     resp.headers["X-Robots-Tag"] = "noindex, nofollow"
     return resp
+
+
+@app.route("/excel/<biz_id>.xlsx")
+@login_required
+def export_xlsx(biz_id):
+    from flask import Response
+    import xlsx_export
+    biz = active_biz(biz_id)
+    cur = db.get_currency(biz["id"])
+    data = xlsx_export.build(biz, CURRENCIES.get(cur, ""), cur)
+    name = "".join(ch if ch.isalnum() else "_" for ch in biz["title"])[:60]
+    return Response(data, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    headers={"Content-Disposition": f"attachment; filename={name}.xlsx"})
 
 
 # ---------- database suggestions ----------

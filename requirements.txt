@@ -16,3 +16,4 @@ urllib3==2.8.0
 Werkzeug==3.1.9
 psycopg-pool==3.3.3
 segno
+openpyxl

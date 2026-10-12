@@ -29,7 +29,7 @@
     <a href="{{ url_for('table_page', biz_id=biz.id, tname=t.name) }}" class="{{ 'on' if current == t.name }}">{{ t.name | pretty }}</a>
     {% endfor %}
     <hr>
-    <a href="{{ url_for('view', biz_id=biz.id) }}" target="_blank">View final product ↗</a>
+    <a href="{{ url_for('view', biz_id=biz.id) }}">View final product ↗</a>
   </nav>
   <section>
     {% for cat, m in get_flashed_messages(with_categories=true) %}
