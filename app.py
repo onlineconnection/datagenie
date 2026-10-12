@@ -306,7 +306,8 @@ def view(biz_id):
                            rows=db.search_rows(biz, table, q),
                            opts=db.fk_options(biz, table),
                            counts=db.row_counts(biz), totals=db.totals(biz),
-                           currency=db.get_currency(biz_id))
+                           currency=db.get_currency(biz_id),
+                           share_url=share_info(biz_id)[0], share_qr=share_info(biz_id)[1])
 
 
 @app.route("/currency/<biz_id>", methods=["POST"])
@@ -317,6 +318,47 @@ def set_currency_route(biz_id):
     if code in CURRENCIES:
         db.set_currency(biz["id"], code)
     return redirect(request.referrer or url_for("view", biz_id=biz["id"]))
+
+
+def share_info(biz_id):
+    token = db.get_share(biz_id)
+    if not token:
+        return None, None
+    base = request.host_url.rstrip("/")
+    if os.environ.get("RENDER"):
+        base = base.replace("http://", "https://")
+    link = base + url_for("public_view", token=token)
+    try:
+        import segno
+        qr = segno.make(link, error="m").svg_inline(scale=5, dark="#0b1f44", border=2)
+    except Exception:
+        qr = None
+    return link, qr
+
+
+@app.route("/share/<biz_id>", methods=["POST"])
+@login_required
+def share_toggle(biz_id):
+    biz = active_biz(biz_id)
+    db.set_share(biz["id"], request.form.get("action") == "on")
+    return redirect(url_for("view", biz_id=biz["id"]))
+
+
+@app.route("/s/<token>")
+def public_view(token):
+    from flask import abort, make_response
+    biz = db.biz_by_token(token)
+    if not biz:
+        abort(404)
+    table = db.get_table(biz, request.args.get("t", "")) or biz["design"]["tables"][0]
+    q = (request.args.get("q") or "").strip()[:100]
+    resp = make_response(render_template("public.html", biz=biz, table=table, q=q, token=token,
+                                         rows=db.search_rows(biz, table, q),
+                                         opts=db.fk_options(biz, table),
+                                         counts=db.row_counts(biz), totals=db.totals(biz),
+                                         currency=db.get_currency(biz["id"])))
+    resp.headers["X-Robots-Tag"] = "noindex, nofollow"
+    return resp
 
 
 # ---------- database suggestions ----------

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ biz.title }}{% endblock %}
+{% block content %}
+<style>
+  main { max-width: 1100px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .stat .n { font-size: 26px; font-weight: 700; color: var(--brand); }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .tabs a { padding: 8px 14px; border-radius: 8px; background: var(--soft); color: var(--ink); text-decoration: none; font-size: 14px; }
+  .tabs a.on { background: var(--brand); color: #fff; }
+  .scroll { overflow-x: auto; }
+  .bar { display: flex; gap: 8px; margin-bottom: 12px; }
+  .bar input { flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+  @media (max-width:640px) {
+    .tabs { flex-wrap:nowrap; overflow-x:auto; padding-bottom:6px; }
+    .tabs a { white-space:nowrap; }
+    .stats { grid-template-columns:1fr 1fr; }
+  }
+</style>
+
+<h1>{{ biz.title }}</h1>
+<p class="sub">Live data, read only.</p>
+
+{% if totals %}
+<div class="stats">
+  {% for s in totals %}
+  <div class="card stat"><div class="sub">{{ s.label }}</div><div class="n">{{ money(s.value, currency) }}</div></div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="tabs">
+  {% for t in biz.design.tables %}
+  <a href="{{ url_for('public_view', token=token, t=t.name) }}" class="{{ 'on' if t.name == table.name }}">
+    {{ t.name | pretty }} ({{ counts[t.name] }})
+  </a>
+  {% endfor %}
+</div>
+
+<div class="card scroll">
+  <form class="bar" method="get">
+    <input type="hidden" name="t" value="{{ table.name }}">
+    <input name="q" value="{{ q }}" placeholder="Search {{ table.name | pretty }}...">
+    <button type="submit">Search</button>
+  </form>
+  {% if rows %}
+  <table>
+    <tr>{% for col in table.columns %}<th>{{ '#' if col.primary_key else col.name | pretty }}</th>{% endfor %}</tr>
+    {% for r in rows %}
+    <tr>
+      {% for col in table.columns %}
+        {% set v = r[loop.index0] %}
+        <td>{% if v is none %}{% elif col.type == 'boolean' %}{{ 'Yes' if v else 'No' }}{% elif col.references %}{{ opts[col.name].get(v, v) }}{% else %}{{ v }}{% endif %}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="sub">{{ 'No matches.' if q else 'No records yet.' }}</p>
+  {% endif %}
+</div>
+{% endblock %}

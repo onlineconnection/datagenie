@@ -471,3 +471,26 @@ def delete_business(biz_id):
             c.execute(sql.SQL("drop schema if exists {} cascade").format(sql.Identifier(pg)))
         c.execute("delete from datagenie_businesses where id=%s", (biz_id,))
     return True
+
+
+def get_share(biz_id):
+    with connect() as c:
+        r = c.execute("select share_token from datagenie_businesses where id=%s", (biz_id,)).fetchone()
+    return r[0] if r else None
+
+
+def set_share(biz_id, enabled):
+    import secrets
+    token = secrets.token_urlsafe(16) if enabled else None
+    with connect() as c:
+        c.execute("update datagenie_businesses set share_token=%s where id=%s", (token, biz_id))
+    return token
+
+
+def biz_by_token(token):
+    if not token or len(token) > 64:
+        return None
+    with connect() as c:
+        r = c.execute("select id from datagenie_businesses where share_token=%s and status='active'",
+                      (token,)).fetchone()
+    return get_business(r[0]) if r else None

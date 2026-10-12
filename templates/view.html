@@ -47,6 +47,20 @@
 </div>
 {% endif %}
 
+<div class="card" style="margin-bottom:14px">
+  <div class="sub">Share a read-only public page</div>
+  <form method="post" action="{{ url_for('share_toggle', biz_id=biz.id) }}" style="margin-top:8px">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if share_url %}
+    <input readonly value="{{ share_url }}" onclick="this.select()" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit">
+    {% if share_qr %}<div style="width:170px;margin:12px 0">{{ share_qr | safe }}</div>{% endif %}
+    <button class="btn danger" name="action" value="off" type="submit">Stop sharing</button>
+    {% else %}
+    <button class="btn" name="action" value="on" type="submit">Create share link</button>
+    {% endif %}
+  </form>
+</div>
+
 {% set bc = count_bars(biz, counts) %}{% set bt = bars(totals) %}
 <div class="charts">
   <div class="card"><div class="sub">Records per table</div>
