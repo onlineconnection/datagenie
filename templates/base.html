@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0b1f44">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="DataGenie">
 <title>{% block title %}DataGenie{% endblock %}</title>
 <style>
   :root { --bg:#f4f8ff; --soft:#e6efff; --card:#ffffff; --ink:#0b1f44; --muted:#52627f; --brand:#1d4ed8; --brand2:#1e40af; --accent:#2563eb; --line:#d5e0f5; --ok:#0f7a4a; }
@@ -70,5 +75,6 @@
   </span>
 </div></header>
 <main>{% block content %}{% endblock %}</main>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js')})}</script>
 </body>
 </html>

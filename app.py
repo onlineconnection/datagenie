@@ -406,6 +406,42 @@ def import_data():
     return redirect(url_for("review", biz_id=biz_id))
 
 
+@app.route("/manifest.json")
+def manifest():
+    from flask import jsonify
+    r = jsonify({
+        "name": "DataGenie", "short_name": "DataGenie",
+        "description": "Describe your business. Let AI build your database.",
+        "start_url": "/", "scope": "/", "display": "standalone",
+        "background_color": "#f4f8ff", "theme_color": "#0b1f44",
+        "icons": [
+            {"src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+            {"src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+            {"src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}]})
+    r.mimetype = "application/manifest+json"
+    return r
+
+
+SW_JS = """self.addEventListener('install', function (e) { self.skipWaiting(); });
+self.addEventListener('activate', function (e) { e.waitUntil(self.clients.claim()); });
+self.addEventListener('fetch', function (e) {
+  if (e.request.mode !== 'navigate') return;
+  e.respondWith(fetch(e.request).catch(function () {
+    return new Response('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><body style="font-family:Segoe UI,Arial,sans-serif;background:#f4f8ff;color:#0b1f44;text-align:center;padding:60px 20px"><h1>You are offline</h1><p>DataGenie needs an internet connection. Please reconnect and try again.</p></body>', {headers: {'Content-Type': 'text/html; charset=utf-8'}});
+  }));
+});
+"""
+
+
+@app.route("/sw.js")
+def service_worker():
+    from flask import Response
+    r = Response(SW_JS, mimetype="application/javascript")
+    r.headers["Cache-Control"] = "no-cache"
+    r.headers["Service-Worker-Allowed"] = "/"
+    return r
+
+
 # ---------- database suggestions ----------
 def load_suggestions():
     items = []
