@@ -1,3 +1,4 @@
+import time
 import os, re, json, glob, secrets
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, abort, flash, session, jsonify
@@ -52,6 +53,50 @@ def active_biz(biz_id):
     return biz
 
 
+# ---------- security ----------
+app.config["SESSION_COOKIE_SECURE"] = bool(os.getenv("RENDER"))
+FAILS = {}
+
+
+def too_many(key):
+    now = time.time()
+    FAILS[key] = [t for t in FAILS.get(key, []) if now - t < 600]
+    return len(FAILS[key]) >= 5
+
+
+def csrf_token():
+    if "csrf" not in session:
+        session["csrf"] = secrets.token_hex(16)
+    return session["csrf"]
+
+
+app.jinja_env.globals["csrf_token"] = csrf_token
+
+
+@app.before_request
+def csrf_protect():
+    if request.method == "POST":
+        sent = request.form.get("csrf_token") or request.headers.get("X-CSRF-Token") or ""
+        if not secrets.compare_digest(sent, session.get("csrf", "")):
+            abort(400)
+
+
+@app.errorhandler(400)
+def bad_request(e):
+    return "Your session expired or the request was not valid. Go back, refresh the page and try again.", 400
+
+
+@app.after_request
+def security_headers(resp):
+    resp.headers["X-Content-Type-Options"] = "nosniff"
+    resp.headers["X-Frame-Options"] = "DENY"
+    resp.headers["Referrer-Policy"] = "same-origin"
+    resp.headers["Content-Security-Policy"] = (
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; frame-ancestors 'none'; form-action 'self'; base-uri 'self'")
+    return resp
+
+
 # ---------- accounts ----------
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -79,11 +124,14 @@ def login():
     error = None
     if request.method == "POST":
         email = (request.form.get("email") or "").strip().lower()
+        if too_many(email):
+            return render_template("login.html", error="Too many failed attempts. Wait 10 minutes and try again.")
         row = db.user_by_email(email)
         if row and check_password_hash(row[2], request.form.get("password") or ""):
             session.clear()
             session["uid"], session["email"] = row[0], row[1]
             return redirect(url_for("my"))
+        FAILS.setdefault(email, []).append(time.time())
         error = "Wrong email or password."
     return render_template("login.html", error=error)
 

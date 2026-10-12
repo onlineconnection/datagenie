@@ -30,6 +30,7 @@
 </div>
 
 <form id="a" method="post" action="{{ url_for('approve', biz_id=biz.id) }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <button id="ok" type="submit">Approve and build my database</button>
   <a class="btn ghost" href="{{ url_for('home') }}">Start over</a>
   <div id="sp" class="spinner">Building your database...</div>

@@ -4,6 +4,7 @@
 <div class="card">
   <strong>Add to {{ table.name | pretty }}</strong>
   <form method="post" action="{{ url_for('add_record', biz_id=biz.id, tname=table.name) }}" style="margin-top:12px">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-grid">
     {% for col in table.columns if not col.primary_key %}
       <div>
@@ -41,6 +42,7 @@
       {% endfor %}
       <td>
         <form method="post" action="{{ url_for('delete_record', biz_id=biz.id, tname=table.name, row_id=r[0]) }}" onsubmit="return confirm('Delete this record?')">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button class="del" type="submit">Delete</button>
         </form>
       </td>

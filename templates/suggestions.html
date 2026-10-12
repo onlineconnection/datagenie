@@ -60,6 +60,7 @@
       {% if i.tables | length > 4 %}<span>+{{ i.tables | length - 4 }} more</span>{% endif %}
     </div>
     <form method="post" action="{{ url_for('use_suggestion', slug=i.slug) }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit">Use this design</button>
     </form>
   </div>

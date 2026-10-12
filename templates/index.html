@@ -20,6 +20,7 @@
 <div class="card">
   {% if error %}<div class="error">{{ error }}</div>{% endif %}
   <form id="f" method="post" action="{{ url_for('make_design') }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label>Your business</label>
     <textarea id="d" name="description" required placeholder="Example: I run a supermarket. I want to manage products, suppliers, stock, sales, customers, expenses and daily profit."></textarea>
     <div class="chips">

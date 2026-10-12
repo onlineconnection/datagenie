@@ -6,6 +6,7 @@
   <p class="sub">It takes a few seconds.</p>
   {% if error %}<div class="error">{{ error }}</div>{% endif %}
   <form method="post">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <p><label>Email</label><input type="email" name="email" required></p>
     <p><label>Password (8 or more characters)</label><input type="password" name="password" required minlength="8"></p>
     <button type="submit" style="width:100%">Sign up</button>
