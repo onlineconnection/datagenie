@@ -154,4 +154,61 @@ def build(data, filename):
     if not tables:
         raise ValueError("No data found. Put column headers in the first row and records below them.")
     title = clean(filename.rsplit(".", 1)[0]) or "imported_data"
-    return {"name": title, "tables": tables}, rowsmap
+    return link({"name": title, "tables": tables}, rowsmap)
+
+
+def stem(n):
+    n = n.lower()
+    if n.endswith("ies"):
+        return n[:-3] + "y"
+    if n.endswith("s") and len(n) > 3:
+        return n[:-1]
+    return n
+
+
+def norm(v):
+    return " ".join(str(v).lower().split())
+
+
+def link(schema, rowsmap):
+    tables = {t["name"]: t for t in schema["tables"]}
+    refs = {n: set() for n in tables}
+
+    def reaches(a, b, seen=None):
+        seen = seen or set()
+        if a == b:
+            return True
+        seen.add(a)
+        return any(reaches(x, b, seen) for x in refs[a] if x not in seen)
+
+    labels = {}
+    for pn, pt in tables.items():
+        lc = next((c["name"] for c in pt["columns"] if c["type"] == "text" and not c["primary_key"]), None)
+        if not lc:
+            continue
+        vals = [norm(r.get(lc)) for r in rowsmap[pn] if r.get(lc) not in EMPTY]
+        if len(vals) == len(rowsmap[pn]) and len(set(vals)) == len(vals) and vals:
+            labels[pn] = {v: i + 1 for i, v in enumerate(norm(r.get(lc)) for r in rowsmap[pn])}
+    for tn, t in tables.items():
+        for c in t["columns"]:
+            if c["type"] != "text" or c["primary_key"] or c["references"]:
+                continue
+            vals = [r.get(c["name"]) for r in rowsmap[tn]]
+            filled = [norm(v) for v in vals if v not in EMPTY]
+            if not filled:
+                continue
+            for pn, lab in labels.items():
+                sp = stem(pn)
+                nm = c["name"]
+                if pn == tn or not (sp in nm or (nm in sp and len(nm) >= 4)):
+                    continue
+                if not all(v in lab for v in filled) or reaches(pn, tn):
+                    continue
+                for r in rowsmap[tn]:
+                    v = r.get(nm)
+                    r[nm] = lab[norm(v)] if v not in EMPTY else None
+                c["type"] = "integer"
+                c["references"] = pn + ".id"
+                refs[tn].add(pn)
+                break
+    return schema, rowsmap

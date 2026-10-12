@@ -249,7 +249,7 @@ app.jinja_env.globals["CURRENCIES"] = CURRENCIES
 def bars(items):
     top = max([float(i["value"]) for i in items] or [0]) or 1
     return [{"label": i["label"], "value": i["value"],
-             "pct": max(2, round(float(i["value"]) / top * 100))} for i in items]
+             "pct": max(2, round(float(i["value"]) / top * 100)), "money": i.get("money", False)} for i in items]
 
 
 def count_bars(biz, counts):

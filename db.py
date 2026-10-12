@@ -221,6 +221,20 @@ def delete_row(biz, table, row_id):
 
 
 # ---------- final product view ----------
+MONEY_WORDS = ("price", "amount", "cost", "total", "salary", "fee", "balance", "revenue", "paid",
+               "payment", "wage", "rent", "budget", "sales", "income", "expense", "profit",
+               "charge", "fare", "tuition", "deposit", "loan", "interest")
+COUNT_WORDS = ("quantity", "qty", "stock", "count", "units", "unit_count", "weight", "kg", "number",
+               "items", "pieces", "volume", "reorder", "capacity", "age", "rooms", "size")
+
+
+def is_money(name):
+    n = name.lower()
+    if any(w in n for w in COUNT_WORDS):
+        return False
+    return any(w in n for w in MONEY_WORDS)
+
+
 def totals(biz, max_items=6):
     items = []
     with connect() as c:
@@ -231,7 +245,7 @@ def totals(biz, max_items=6):
                         sql.Identifier(col["name"]), sql.Identifier(biz["pg_schema"]),
                         sql.Identifier(t["name"]))
                     label = f"{t['name'].replace('_', ' ').title()}: {col['name'].replace('_', ' ').title()}"
-                    items.append({"label": label, "value": c.execute(q).fetchone()[0]})
+                    items.append({"label": label, "value": c.execute(q).fetchone()[0], "money": is_money(col["name"])})
     return items
 
 
@@ -507,12 +521,16 @@ def save_import(title, design, data):
 def load_import(biz_id):
     try:
         with connect() as c:
-            r = c.execute("select import_rows, pg_schema from datagenie_businesses where id=%s and status='active'",
+            r = c.execute("select import_rows, pg_schema, design from datagenie_businesses where id=%s and status='active'",
                           (biz_id,)).fetchone()
             if not r or not r[0] or not str(r[1]).startswith("biz_"):
                 return
-            data, pg = r
-            for t, d in data.items():
+            data, pg, design = r
+            order = [x["name"] for x in design["tables"]]
+            for t in order:
+                d = data.get(t)
+                if not d:
+                    continue
                 cols, rows = d["cols"], d["rows"]
                 if not cols or not rows:
                     continue

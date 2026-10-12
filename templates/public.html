@@ -24,7 +24,7 @@
 {% if totals %}
 <div class="stats">
   {% for s in totals %}
-  <div class="card stat"><div class="sub">{{ s.label }}</div><div class="n">{{ money(s.value, currency) }}</div></div>
+  <div class="card stat"><div class="sub">{{ s.label }}</div><div class="n">{{ money(s.value, currency) if s.money else '{:,.2f}'.format(s.value) }}</div></div>
   {% endfor %}
 </div>
 {% endif %}

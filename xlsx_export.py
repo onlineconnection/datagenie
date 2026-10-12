@@ -19,7 +19,7 @@ def pretty(n):
 
 
 def ismoney(name):
-    return any(w in name for w in MONEY_WORDS)
+    return db.is_money(name)
 
 
 def build(biz, symbol, code):
