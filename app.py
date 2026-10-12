@@ -235,6 +235,66 @@ def delete_record(biz_id, tname, row_id):
     return redirect(url_for("table_page", biz_id=biz_id, tname=tname))
 
 
+CURRENCIES = {"USD": "$", "LRD": "L$", "EUR": "EUR ", "GBP": "GBP ", "NGN": "NGN ", "GHS": "GHS "}
+
+
+def money(v, cur="USD"):
+    return f"{CURRENCIES.get(cur, '')}{float(v):,.2f}"
+
+
+app.jinja_env.globals["money"] = money
+app.jinja_env.globals["CURRENCIES"] = CURRENCIES
+
+
+def bars(items):
+    top = max([float(i["value"]) for i in items] or [0]) or 1
+    return [{"label": i["label"], "value": i["value"],
+             "pct": max(2, round(float(i["value"]) / top * 100))} for i in items]
+
+
+def count_bars(biz, counts):
+    return bars([{"label": t["name"].replace("_", " ").title(), "value": counts.get(t["name"], 0)}
+                 for t in biz["design"]["tables"]])
+
+
+app.jinja_env.globals["bars"] = bars
+app.jinja_env.globals["count_bars"] = count_bars
+
+
+def csv_safe(v):
+    v = "" if v is None else str(v)
+    return "'" + v if v[:1] in ("=", "+", "-", "@") else v
+
+
+@app.route("/export/<biz_id>/<table>.csv")
+@login_required
+def export_csv(biz_id, table):
+    import csv, io
+    from flask import abort, Response
+    biz = active_biz(biz_id)
+    t = db.get_table(biz, table)
+    if not t:
+        abort(404)
+    rows = db.search_rows(biz, t, "", limit=50000)
+    opts = db.fk_options(biz, t)
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["#" if c["primary_key"] else c["name"].replace("_", " ").title() for c in t["columns"]])
+    for r in rows:
+        out = []
+        for i, c in enumerate(t["columns"]):
+            v = r[i]
+            if c["type"] == "boolean" and v is not None:
+                v = "Yes" if v else "No"
+            elif c["references"] and v is not None:
+                v = opts.get(c["name"], {}).get(v, v)
+            out.append(csv_safe(v))
+        w.writerow(out)
+    name = "".join(ch if ch.isalnum() else "_" for ch in f"{biz['title']}_{t['name']}")[:60]
+    return Response("\ufeff" + buf.getvalue(), mimetype="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": f"attachment; filename={name}.csv"})
+
+
 # ---------- final product ----------
 @app.route("/view/<biz_id>")
 @login_required
@@ -245,7 +305,18 @@ def view(biz_id):
     return render_template("view.html", biz=biz, table=table, q=q,
                            rows=db.search_rows(biz, table, q),
                            opts=db.fk_options(biz, table),
-                           counts=db.row_counts(biz), totals=db.totals(biz))
+                           counts=db.row_counts(biz), totals=db.totals(biz),
+                           currency=db.get_currency(biz_id))
+
+
+@app.route("/currency/<biz_id>", methods=["POST"])
+@login_required
+def set_currency_route(biz_id):
+    biz = active_biz(biz_id)
+    code = request.form.get("currency", "")
+    if code in CURRENCIES:
+        db.set_currency(biz["id"], code)
+    return redirect(request.referrer or url_for("view", biz_id=biz["id"]))
 
 
 # ---------- database suggestions ----------

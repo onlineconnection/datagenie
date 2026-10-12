@@ -41,6 +41,19 @@ def init_registry():
                 status text not null default 'pending',
                 created_at timestamptz not null default now()
             )""")
+        c.execute("alter table datagenie_businesses add column if not exists currency text not null default 'USD'")
+        c.execute("alter table datagenie_businesses add column if not exists share_token text")
+
+
+def get_currency(biz_id):
+    with connect() as c:
+        r = c.execute("select currency from datagenie_businesses where id=%s", (biz_id,)).fetchone()
+    return r[0] if r else "USD"
+
+
+def set_currency(biz_id, code):
+    with connect() as c:
+        c.execute("update datagenie_businesses set currency=%s where id=%s", (code, biz_id))
 
 
 def save_pending(description, design):

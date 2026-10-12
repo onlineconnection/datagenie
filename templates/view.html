@@ -9,6 +9,12 @@
   .tabs a { padding: 8px 14px; border-radius: 8px; background: var(--soft); color: var(--ink); text-decoration: none; font-size: 14px; }
   .tabs a.on { background: var(--brand); color: #fff; }
   .scroll { overflow-x: auto; }
+  .charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; margin-bottom:16px; }
+  .brow { display:grid; grid-template-columns:110px 1fr auto; gap:8px; align-items:center; margin-top:10px; font-size:13px; }
+  .brow .bl { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:700; }
+  .brow .bt { background:var(--soft); border-radius:6px; height:14px; overflow:hidden; }
+  .brow .bt i { display:block; height:100%; background:var(--brand); border-radius:6px; }
+  .brow .bv { font-weight:700; color:var(--brand); }
   .bar { display: flex; gap: 8px; margin-bottom: 12px; }
   .bar input { flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
 
@@ -25,13 +31,33 @@
   <a href="{{ url_for('dashboard', biz_id=biz.id) }}">Manage data</a>
 </p>
 
+<form method="post" action="{{ url_for('set_currency_route', biz_id=biz.id) }}" style="margin-bottom:14px">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label class="sub">Currency</label>
+  <select name="currency" onchange="this.form.submit()">
+    {% for c in CURRENCIES %}<option value="{{ c }}" {{ 'selected' if c == currency }}>{{ c }}</option>{% endfor %}
+  </select>
+</form>
+
 {% if totals %}
 <div class="stats">
   {% for s in totals %}
-  <div class="card stat"><div class="sub">{{ s.label }}</div><div class="n">{{ '{:,.2f}'.format(s.value) }}</div></div>
+  <div class="card stat"><div class="sub">{{ s.label }}</div><div class="n">{{ money(s.value, currency) }}</div></div>
   {% endfor %}
 </div>
 {% endif %}
+
+{% set bc = count_bars(biz, counts) %}{% set bt = bars(totals) %}
+<div class="charts">
+  <div class="card"><div class="sub">Records per table</div>
+    {% for b in bc %}<div class="brow"><span class="bl">{{ b.label }}</span><span class="bt"><i style="width:{{ b.pct }}%"></i></span><span class="bv">{{ b.value }}</span></div>{% endfor %}
+  </div>
+  {% if bt %}
+  <div class="card"><div class="sub">Money totals</div>
+    {% for b in bt %}<div class="brow"><span class="bl">{{ b.label }}</span><span class="bt"><i style="width:{{ b.pct }}%"></i></span><span class="bv">{{ money(b.value, currency) }}</span></div>{% endfor %}
+  </div>
+  {% endif %}
+</div>
 
 <div class="tabs">
   {% for t in biz.design.tables %}
@@ -46,6 +72,7 @@
     <input type="hidden" name="t" value="{{ table.name }}">
     <input name="q" value="{{ q }}" placeholder="Search {{ table.name | pretty }}...">
     <button type="submit">Search</button>
+    <a class="btn ghost" href="{{ url_for('export_csv', biz_id=biz.id, table=table.name) }}">Download CSV</a>
   </form>
   {% if rows %}
   <table>
