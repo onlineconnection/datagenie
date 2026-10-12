@@ -1,0 +1,316 @@
+{
+ "name": "hardware",
+ "title": "Hardware & Building Supplies",
+ "icon": "🔧",
+ "category": "Retail",
+ "description": "Products, suppliers, purchases, customer credit and sales.",
+ "keywords": [
+  "hardware",
+  "building materials",
+  "cement",
+  "tools",
+  "plumbing",
+  "construction supplies"
+ ],
+ "tables": [
+  {
+   "name": "categories",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "suppliers",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "products",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "category_id",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": "categories.id"
+    },
+    {
+     "name": "supplier_id",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": "suppliers.id"
+    },
+    {
+     "name": "cost_price",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "selling_price",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "stock_quantity",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "reorder_level",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "purchases",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "supplier_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "suppliers.id"
+    },
+    {
+     "name": "product_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "products.id"
+    },
+    {
+     "name": "quantity",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "unit_cost",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "purchase_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "customers",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "credit_balance",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "sales",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "customer_id",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": "customers.id"
+    },
+    {
+     "name": "sale_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "total_amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "payment_status",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "sale_items",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "sale_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "sales.id"
+    },
+    {
+     "name": "product_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "products.id"
+    },
+    {
+     "name": "quantity",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "unit_price",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "expenses",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "description",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "expense_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  }
+ ]
+}

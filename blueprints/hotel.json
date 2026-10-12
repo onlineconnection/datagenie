@@ -1,0 +1,304 @@
+{
+ "name": "hotel",
+ "title": "Hotel & Guest House",
+ "icon": "🏨",
+ "category": "Hospitality",
+ "description": "Rooms, guests, bookings, payments and extra services.",
+ "keywords": [
+  "hotel",
+  "guest house",
+  "lodge",
+  "rooms",
+  "booking",
+  "accommodation"
+ ],
+ "tables": [
+  {
+   "name": "rooms",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "room_number",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "room_type",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "price_per_night",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "guests",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "full_name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "email",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "id_number",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "bookings",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "guest_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "guests.id"
+    },
+    {
+     "name": "room_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "rooms.id"
+    },
+    {
+     "name": "check_in_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "check_out_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "total_amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "payments",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "booking_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "bookings.id"
+    },
+    {
+     "name": "amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "payment_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "method",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "services",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "booking_id",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": "bookings.id"
+    },
+    {
+     "name": "description",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "service_date",
+     "type": "date",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "staff",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "role",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "salary",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "expenses",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "description",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "expense_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  }
+ ]
+}

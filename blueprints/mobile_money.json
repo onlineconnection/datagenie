@@ -1,0 +1,251 @@
+{
+ "name": "mobile_money",
+ "title": "Mobile Money & Airtime",
+ "icon": "📱",
+ "category": "Finance",
+ "description": "Transactions, float, airtime sales and daily cash closing.",
+ "keywords": [
+  "mobile money",
+  "airtime",
+  "momo",
+  "orange money",
+  "lonestar",
+  "float",
+  "agent"
+ ],
+ "tables": [
+  {
+   "name": "customers",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "transactions",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "transaction_time",
+     "type": "timestamp",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "transaction_kind",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "customer_id",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": "customers.id"
+    },
+    {
+     "name": "amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "commission",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "reference",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "float_balances",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "provider",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "balance_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "cash_balance",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "float_balance",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "airtime_sales",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "network",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "cost",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "sale_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "daily_closing",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "closing_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "opening_cash",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "closing_cash",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "expenses",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "description",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "expense_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  }
+ ]
+}

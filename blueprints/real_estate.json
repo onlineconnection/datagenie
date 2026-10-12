@@ -1,0 +1,313 @@
+{
+ "name": "real_estate",
+ "title": "Real Estate & Rentals",
+ "icon": "🏘️",
+ "category": "Property",
+ "description": "Properties, tenants, leases, rent payments and repairs.",
+ "keywords": [
+  "real estate",
+  "rental",
+  "landlord",
+  "tenant",
+  "property",
+  "apartment",
+  "houses",
+  "rent"
+ ],
+ "tables": [
+  {
+   "name": "owners",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "email",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "properties",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "title",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "address",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "property_type",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "owner_id",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": "owners.id"
+    },
+    {
+     "name": "monthly_rent",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "tenants",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "full_name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "email",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "id_number",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "leases",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "property_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "properties.id"
+    },
+    {
+     "name": "tenant_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "tenants.id"
+    },
+    {
+     "name": "start_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "end_date",
+     "type": "date",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "monthly_rent",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "rent_payments",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "lease_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "leases.id"
+    },
+    {
+     "name": "amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "payment_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "month_covered",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "repairs",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "property_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "properties.id"
+    },
+    {
+     "name": "description",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "cost",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "request_date",
+     "type": "date",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "expenses",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "description",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "expense_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  }
+ ]
+}

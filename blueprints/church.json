@@ -1,0 +1,278 @@
+{
+ "name": "church",
+ "title": "Church & NGO",
+ "icon": "⛪",
+ "category": "Community",
+ "description": "Members, donations, pledges, events and ministries.",
+ "keywords": [
+  "church",
+  "ngo",
+  "donations",
+  "congregation",
+  "charity",
+  "nonprofit",
+  "ministry",
+  "community"
+ ],
+ "tables": [
+  {
+   "name": "members",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "full_name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "gender",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "join_date",
+     "type": "date",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "address",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "ministries",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "leader_name",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "donations",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "member_id",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": "members.id"
+    },
+    {
+     "name": "amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "donation_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "purpose",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "pledges",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "member_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "members.id"
+    },
+    {
+     "name": "amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "due_date",
+     "type": "date",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "paid",
+     "type": "boolean",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "events",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "title",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "event_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "location",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "budget",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "event_attendance",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "event_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "events.id"
+    },
+    {
+     "name": "member_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "members.id"
+    }
+   ]
+  },
+  {
+   "name": "expenses",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "description",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "expense_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  }
+ ]
+}

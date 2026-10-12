@@ -1,0 +1,319 @@
+{
+ "name": "poultry",
+ "title": "Poultry & Egg Farm",
+ "icon": "🐔",
+ "category": "Agriculture",
+ "description": "Flocks, eggs, feed, vaccinations, losses and sales.",
+ "keywords": [
+  "poultry",
+  "chicken",
+  "eggs",
+  "layers",
+  "broilers",
+  "hatchery",
+  "livestock farm"
+ ],
+ "tables": [
+  {
+   "name": "flocks",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "bird_type",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "start_date",
+     "type": "date",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "initial_count",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "egg_production",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "flock_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "flocks.id"
+    },
+    {
+     "name": "collection_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "eggs_collected",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "broken",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "feed_purchases",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "flock_id",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": "flocks.id"
+    },
+    {
+     "name": "feed_type",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "quantity_kg",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "cost",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "purchase_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "mortality",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "flock_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "flocks.id"
+    },
+    {
+     "name": "record_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "deaths",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "cause",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "vaccinations",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "flock_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "flocks.id"
+    },
+    {
+     "name": "vaccine",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "vaccination_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "cost",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "buyers",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "sales",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "buyer_id",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": "buyers.id"
+    },
+    {
+     "name": "flock_id",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": "flocks.id"
+    },
+    {
+     "name": "item",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "quantity",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "unit_price",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "total_amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "sale_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  }
+ ]
+}

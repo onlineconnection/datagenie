@@ -1,4 +1,4 @@
-import os, secrets
+import os, re, json, glob, secrets
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, abort, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -196,6 +196,41 @@ def view(biz_id):
                            rows=db.search_rows(biz, table, q),
                            opts=db.fk_options(biz, table),
                            counts=db.row_counts(biz), totals=db.totals(biz))
+
+
+# ---------- database suggestions ----------
+def load_suggestions():
+    items = []
+    for p in glob.glob("blueprints/*.json"):
+        b = json.load(open(p, encoding="utf-8"))
+        slug = os.path.basename(p)[:-5]
+        items.append({"slug": slug, "title": b.get("title", slug.replace("_", " ").title()),
+                      "icon": b.get("icon", "🗄️"), "category": b.get("category", "Other"),
+                      "description": b.get("description", ""),
+                      "tables": [t["name"] for t in b["tables"]]})
+    return sorted(items, key=lambda i: i["title"])
+
+
+@app.route("/suggestions")
+@login_required
+def suggestions():
+    items = load_suggestions()
+    return render_template("suggestions.html", items=items, cats=sorted({i["category"] for i in items}))
+
+
+@app.route("/use/<slug>", methods=["POST"])
+@login_required
+def use_suggestion(slug):
+    if not re.fullmatch(r"[a-z0-9_]{1,40}", slug) or not os.path.exists(f"blueprints/{slug}.json"):
+        abort(404)
+    schema = json.load(open(f"blueprints/{slug}.json", encoding="utf-8"))
+    ok, cleaned, errors = validate_schema(schema)
+    if not ok:
+        abort(500)
+    cleaned["name"] = schema.get("title", slug)
+    biz_id = db.save_pending("Ready-made design: " + cleaned["name"], cleaned)
+    db.set_owner(biz_id, session["uid"])
+    return redirect(url_for("review", biz_id=biz_id, src="template"))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,290 @@
+{
+ "name": "auto_repair",
+ "title": "Garage & Auto Repair",
+ "icon": "🚗",
+ "category": "Services",
+ "description": "Customers, vehicles, job cards, parts and payments.",
+ "keywords": [
+  "garage",
+  "auto repair",
+  "mechanic",
+  "car repair",
+  "spare parts",
+  "workshop"
+ ],
+ "tables": [
+  {
+   "name": "customers",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "vehicles",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "customer_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "customers.id"
+    },
+    {
+     "name": "plate_number",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "make",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "model",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "year",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "mechanics",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "specialty",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "job_cards",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "vehicle_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "vehicles.id"
+    },
+    {
+     "name": "mechanic_id",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": "mechanics.id"
+    },
+    {
+     "name": "job_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "problem",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "labor_cost",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "parts",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "cost_price",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "selling_price",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "stock_quantity",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "job_parts",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "job_card_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "job_cards.id"
+    },
+    {
+     "name": "part_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "parts.id"
+    },
+    {
+     "name": "quantity",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "unit_price",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "payments",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "job_card_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "job_cards.id"
+    },
+    {
+     "name": "amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "payment_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  }
+ ]
+}

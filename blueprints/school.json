@@ -263,5 +263,9 @@
     }
    ]
   }
- ]
+ ],
+ "title": "School",
+ "icon": "🎓",
+ "category": "Education",
+ "description": "Students, teachers, classes, fees, results and attendance."
 }

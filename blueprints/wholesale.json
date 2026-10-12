@@ -1,0 +1,337 @@
+{
+ "name": "wholesale",
+ "title": "Wholesale & Distribution",
+ "icon": "📦",
+ "category": "Retail",
+ "description": "Suppliers, stock, retailer orders, deliveries and payments.",
+ "keywords": [
+  "wholesale",
+  "distribution",
+  "distributor",
+  "retailers",
+  "bulk",
+  "warehouse"
+ ],
+ "tables": [
+  {
+   "name": "suppliers",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "products",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "supplier_id",
+     "type": "integer",
+     "required": false,
+     "primary_key": false,
+     "references": "suppliers.id"
+    },
+    {
+     "name": "unit",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "cost_price",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "selling_price",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "stock_quantity",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "purchases",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "supplier_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "suppliers.id"
+    },
+    {
+     "name": "product_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "products.id"
+    },
+    {
+     "name": "quantity",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "unit_cost",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "purchase_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "retailers",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "address",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "credit_balance",
+     "type": "numeric",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "orders",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "retailer_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "retailers.id"
+    },
+    {
+     "name": "order_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "total_amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "order_items",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "order_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "orders.id"
+    },
+    {
+     "name": "product_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "products.id"
+    },
+    {
+     "name": "quantity",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "unit_price",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "deliveries",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "order_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "orders.id"
+    },
+    {
+     "name": "delivery_date",
+     "type": "date",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "driver_name",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "required": false,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  },
+  {
+   "name": "payments",
+   "columns": [
+    {
+     "name": "id",
+     "type": "integer",
+     "required": true,
+     "primary_key": true,
+     "references": null
+    },
+    {
+     "name": "order_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "orders.id"
+    },
+    {
+     "name": "amount",
+     "type": "numeric",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    },
+    {
+     "name": "payment_date",
+     "type": "date",
+     "required": true,
+     "primary_key": false,
+     "references": null
+    }
+   ]
+  }
+ ]
+}

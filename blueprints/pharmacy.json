@@ -282,5 +282,9 @@
     }
    ]
   }
- ]
+ ],
+ "title": "Pharmacy",
+ "icon": "💊",
+ "category": "Health",
+ "description": "Medicines, expiry dates, suppliers, prescriptions and sales."
 }

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Database Suggestions{% endblock %}
+{% block content %}
+<style>
+  main { max-width: 1180px; }
+  .hero { background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 55%, #7c3aed 100%); color: #fff; border-radius: 22px; padding: 38px 34px; margin: 8px 0 24px; position: relative; overflow: hidden; }
+  .hero:after { content: ""; position: absolute; right: -70px; top: -70px; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,.09); }
+  .hero h1 { margin: 0 0 8px; font-size: 34px; letter-spacing: -.5px; }
+  .hero p { margin: 0 0 18px; color: #ddd6fe; max-width: 620px; font-size: 16px; }
+  .hero .btn { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.3); }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 20px; }
+  .search { flex: 1; min-width: 230px; padding: 13px 16px; border: 1px solid var(--line); border-radius: 12px; font: inherit; background: #fff; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill { background: #fff; border: 1px solid var(--line); color: #475467; padding: 8px 15px; border-radius: 22px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .pill.on { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+  .gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(275px, 1fr)); gap: 18px; }
+  .tpl { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 22px; display: flex; flex-direction: column; transition: .18s; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+  .tpl:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(67,56,202,.16); border-color: #c7d2fe; }
+  .ico { width: 56px; height: 56px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 29px; margin-bottom: 14px; background: linear-gradient(135deg, #eef2ff, #ddd6fe); }
+  .cat { font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: #7c3aed; }
+  .tpl h3 { margin: 4px 0 6px; font-size: 19px; }
+  .tpl p { color: var(--muted); font-size: 14px; margin: 0 0 14px; flex: 1; line-height: 1.45; }
+  .tl { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+  .tl span { font-size: 12px; background: #f2f4f7; color: #475467; padding: 3px 10px; border-radius: 20px; }
+  .tpl button { width: 100%; background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+  .none { display: none; text-align: center; color: var(--muted); padding: 50px 0; }
+</style>
+
+<div class="hero">
+  <h1>Database Suggestions</h1>
+  <p>Start from a professionally designed database for your kind of business. Pick one, review it, and it goes live in seconds.</p>
+  <a class="btn" href="{{ url_for('home') }}">Or describe your own business</a>
+</div>
+
+<div class="toolbar">
+  <input id="q" class="search" placeholder="Search {{ items | length }} designs: hotel, farm, school, taxi..." autocomplete="off">
+  <div class="pills">
+    <button type="button" class="pill on" data-c="">All</button>
+    {% for c in cats %}<button type="button" class="pill" data-c="{{ c }}">{{ c }}</button>{% endfor %}
+  </div>
+</div>
+
+<div class="gal" id="gal">
+  {% for i in items %}
+  <div class="tpl" data-cat="{{ i.category }}" data-text="{{ (i.title ~ ' ' ~ i.description ~ ' ' ~ i.category ~ ' ' ~ i.tables | join(' ')) | lower }}">
+    <div class="ico">{{ i.icon }}</div>
+    <div class="cat">{{ i.category }}</div>
+    <h3>{{ i.title }}</h3>
+    <p>{{ i.description }}</p>
+    <div class="tl">
+      {% for n in i.tables[:5] %}<span>{{ n | pretty }}</span>{% endfor %}
+      {% if i.tables | length > 5 %}<span>+{{ i.tables | length - 5 }} more</span>{% endif %}
+    </div>
+    <form method="post" action="{{ url_for('use_suggestion', slug=i.slug) }}">
+      <button type="submit">Use this design</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+<div class="none" id="none">No designs match your search. Try another word, or describe your own business.</div>
+
+<script>
+  var cat = '', box = document.getElementById('q');
+  function apply() {
+    var t = box.value.trim().toLowerCase(), shown = 0;
+    document.querySelectorAll('.tpl').forEach(function (c) {
+      var ok = (!cat || c.dataset.cat === cat) && (!t || c.dataset.text.indexOf(t) > -1);
+      c.style.display = ok ? '' : 'none';
+      if (ok) shown++;
+    });
+    document.getElementById('none').style.display = shown ? 'none' : 'block';
+  }
+  box.addEventListener('input', apply);
+  document.querySelectorAll('.pill').forEach(function (p) {
+    p.addEventListener('click', function () {
+      document.querySelectorAll('.pill').forEach(function (x) { x.classList.remove('on'); });
+      p.classList.add('on'); cat = p.dataset.c; apply();
+    });
+  });
+</script>
+{% endblock %}

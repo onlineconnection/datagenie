@@ -3,7 +3,7 @@
 {% block content %}
 <h1>Here is your {{ biz.title }} database</h1>
 <p class="sub">
-  Look it over. When it looks right, click Approve and we will build it.
+  Look it over. When it looks right, click Approve and we will build it. {% if src == 'template' %}<span class="tag">ready-made design</span>{% endif %}
   {% if secs %}<span class="tag">{{ 'designed by Gemma' if src == 'gemma' else 'template fallback' }} in {{ secs }}s</span>{% endif %}
 </p>
 

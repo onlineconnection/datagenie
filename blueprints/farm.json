@@ -291,5 +291,9 @@
     }
    ]
   }
- ]
+ ],
+ "title": "Crop Farm",
+ "icon": "🌾",
+ "category": "Agriculture",
+ "description": "Crops, workers, expenses, harvests, buyers and sales."
 }

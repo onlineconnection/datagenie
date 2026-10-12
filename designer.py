@@ -5,7 +5,7 @@ import adapt  # only used for the emergency fallback
 load_dotenv(override=True)
 KEY = os.getenv("GEMMA_API_KEY")
 MODELS = [m for m in (os.getenv("GEMMA_MODEL"), os.getenv("GEMMA_MODEL_BACKUP")) if m]
-TIMEOUT = 75
+TIMEOUT = 45
 
 INSTRUCTIONS = """You design simple databases for small businesses. Design tables that fit EXACTLY what this person says they want to manage.
 Rules: 4 to 8 tables, 3 to 8 fields per table. Do NOT include an id field (it is automatic). Use snake_case names.

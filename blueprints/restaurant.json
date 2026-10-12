@@ -269,5 +269,9 @@
     }
    ]
   }
- ]
+ ],
+ "title": "Restaurant & Café",
+ "icon": "🍽️",
+ "category": "Hospitality",
+ "description": "Menu, orders, ingredients, staff and expenses."
 }
