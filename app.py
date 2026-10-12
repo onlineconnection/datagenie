@@ -271,5 +271,32 @@ def genie_apply(biz_id):
     return jsonify(ok=True, goto=goto)
 
 
+@app.route("/delete/<biz_id>", methods=["GET", "POST"])
+@login_required
+def delete_database(biz_id):
+    biz = owned(biz_id)
+    error = None
+    if request.method == "POST":
+        typed = (request.form.get("confirm") or "").strip().lower()
+        if typed != biz["title"].strip().lower():
+            error = "The name you typed does not match. Nothing was deleted."
+        else:
+            try:
+                db.delete_business(biz_id)
+            except Exception as e:
+                print("Delete failed:", type(e).__name__, e)
+                error = "Could not delete this database. Please try again."
+            else:
+                flash("Database deleted.", "ok")
+                return redirect(url_for("my"))
+    count = 0
+    if biz["status"] == "active":
+        try:
+            count = sum(db.row_counts(biz).values())
+        except Exception:
+            count = 0
+    return render_template("delete.html", biz=biz, error=error, count=count)
+
+
 if __name__ == "__main__":
     app.run(debug=True)

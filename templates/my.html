@@ -5,6 +5,9 @@
   <h1 style="margin:0">My databases</h1>
   <a class="btn" href="{{ url_for('home') }}">+ New database</a>
 </div>
+{% for cat, m in get_flashed_messages(with_categories=true) %}
+<div class="{{ 'error' if cat == 'err' else '' }}" style="{{ '' if cat == 'err' else 'background:#dff3e9;color:#0f7a4a;border:1px solid #b9dfca;padding:11px 14px;border-radius:8px;margin-bottom:14px;font-weight:600' }}">{{ m }}</div>
+{% endfor %}
 {% if items %}
 <div class="grid">
   {% for b in items %}
@@ -17,6 +20,7 @@
     {% else %}
       <a class="btn ghost" href="{{ url_for('review', biz_id=b.id) }}">Review</a>
     {% endif %}
+    <a class="btn danger" href="{{ url_for('delete_database', biz_id=b.id) }}">Delete</a>
   </div>
   {% endfor %}
 </div>

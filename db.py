@@ -445,3 +445,16 @@ def find_rows(biz, tname, col, value, limit=21):
         params = (value, limit)
     with connect() as c:
         return [r[0] for r in c.execute(q, params).fetchall()]
+
+
+
+def delete_business(biz_id):
+    biz = get_business(biz_id)
+    if not biz:
+        return False
+    with connect() as c:
+        pg = biz["pg_schema"]
+        if pg and pg.startswith("biz_"):
+            c.execute(sql.SQL("drop schema if exists {} cascade").format(sql.Identifier(pg)))
+        c.execute("delete from datagenie_businesses where id=%s", (biz_id,))
+    return True

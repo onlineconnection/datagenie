@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Delete database{% endblock %}
+{% block content %}
+<div class="card" style="max-width:520px;margin:30px auto;border-top:4px solid #a4161a">
+  <h1 style="font-size:26px">Delete {{ biz.title }}?</h1>
+  <p class="sub">
+    This permanently deletes the database
+    {% if biz.status == 'active' %}and all {{ count }} record{{ '' if count == 1 else 's' }} in it{% endif %}.
+    It cannot be undone.
+  </p>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form method="post">
+    <p><label>Type <strong>{{ biz.title }}</strong> to confirm</label>
+    <input name="confirm" autocomplete="off" required></p>
+    <button class="danger" type="submit">Delete permanently</button>
+    <a class="btn ghost" href="{{ url_for('my') }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}
