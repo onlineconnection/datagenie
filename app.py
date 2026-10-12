@@ -244,7 +244,7 @@ def genie_plan(biz_id):
         return jsonify(error="Tell me what you would like to change.")
     result = genie.plan(biz, message)
     if result is None:
-        return jsonify(error="GenieAI took too long. Please try again.")
+        return jsonify(error="GenieAI took too long. Try a shorter request, or use the instant ones like: Delete the X table.")
     return jsonify(result)
 
 
@@ -260,8 +260,14 @@ def genie_apply(biz_id):
         db.apply_actions(biz_id, actions)
     except Exception as e:
         print("GenieAI apply failed:", type(e).__name__, e)
-        return jsonify(ok=False, error="Could not apply the changes. Nothing was changed.")
-    return jsonify(ok=True)
+        msg = ("Some existing records do not match that link, so nothing was changed."
+               if "ForeignKey" in type(e).__name__ else "Could not apply the changes. Nothing was changed.")
+        return jsonify(ok=False, error=msg)
+    fresh = db.get_business(biz_id)
+    names = {t["name"] for t in fresh["design"]["tables"]}
+    target = next((x["table"] for x in actions if x["table"] in names), None)
+    goto = url_for("table_page", biz_id=biz_id, tname=target) if target else url_for("dashboard", biz_id=biz_id)
+    return jsonify(ok=True, goto=goto)
 
 
 if __name__ == "__main__":

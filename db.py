@@ -15,8 +15,18 @@ TYPE_SQL = {
 }
 
 
+from psycopg_pool import ConnectionPool
+
+_pool = None
+
+def _get_pool():
+    global _pool
+    if _pool is None:
+        _pool = ConnectionPool(os.getenv("DATABASE_URL"), min_size=1, max_size=4, open=True)
+    return _pool
+
 def connect():
-    return psycopg.connect(os.getenv("DATABASE_URL"), autocommit=False)
+    return _get_pool().connection()
 
 
 def init_registry():
@@ -275,6 +285,7 @@ def list_businesses(owner_id):
     return [dict(zip(["id", "title", "status"], r)) for r in rows]
 
 
+
 def table_count(biz, tname):
     q = sql.SQL("select count(*) from {}.{}").format(sql.Identifier(biz["pg_schema"]), sql.Identifier(tname))
     with connect() as c:
@@ -290,6 +301,46 @@ def _col_sql(pg_schema, col):
         piece += sql.SQL(" references {}.{} ({})").format(
             sql.Identifier(pg_schema), sql.Identifier(rt), sql.Identifier(rc))
     return piece
+
+
+def convert_value(ctype, raw):
+    raw = raw.strip() if isinstance(raw, str) else raw
+    if ctype == "boolean":
+        if isinstance(raw, bool):
+            return raw
+        return str(raw).lower() in ("yes", "true", "1", "y", "paid", "done")
+    if raw is None or raw == "":
+        return None
+    low = str(raw).lower()
+    if ctype == "date":
+        return date.today() if low == "today" else date.fromisoformat(str(raw))
+    if ctype == "timestamp":
+        return datetime.now() if low in ("now", "today") else datetime.fromisoformat(str(raw))
+    if ctype == "integer":
+        d = Decimal(str(raw).replace(",", ""))
+        if d != d.to_integral_value():
+            raise ValueError("not a whole number")
+        return int(d)
+    if ctype == "numeric":
+        return Decimal(str(raw).replace(",", "").lstrip("$"))
+    return str(raw)[:2000]
+
+
+def resolve_link(c, pg, parent, value):
+    value = str(value).strip()
+    if value.isdigit():
+        q = sql.SQL("select id from {}.{} where id=%s").format(sql.Identifier(pg), sql.Identifier(parent["name"]))
+        row = c.execute(q, (int(value),)).fetchone()
+        if row:
+            return row[0]
+    q = sql.SQL("select id from {}.{} where lower({}::text)=lower(%s) order by id limit 1").format(
+        sql.Identifier(pg), sql.Identifier(parent["name"]), sql.Identifier(label_col(parent)))
+    row = c.execute(q, (value,)).fetchone()
+    return row[0] if row else None
+
+
+def _tbl(design, name):
+    return next(t for t in design["tables"] if t["name"] == name)
 
 
 def apply_actions(biz_id, actions):
@@ -311,13 +362,86 @@ def apply_actions(biz_id, actions):
                 col = a["column"]
                 c.execute(sql.SQL("alter table {}.{} add column {}").format(
                     sql.Identifier(pg), sql.Identifier(tname), _col_sql(pg, col)))
-                for t in design["tables"]:
-                    if t["name"] == tname:
-                        t["columns"].append(col)
+                _tbl(design, tname)["columns"].append(col)
             elif op == "drop_column":
                 c.execute(sql.SQL("alter table {}.{} drop column {}").format(
                     sql.Identifier(pg), sql.Identifier(tname), sql.Identifier(a["column"])))
+                t = _tbl(design, tname)
+                t["columns"] = [x for x in t["columns"] if x["name"] != a["column"]]
+            elif op == "add_row":
+                table = _tbl(design, tname)
+                names, vals = [], []
+                for cname, raw in a["values"].items():
+                    col = next(x for x in table["columns"] if x["name"] == cname)
+                    if col["references"]:
+                        parent = _tbl(design, col["references"].split(".")[0])
+                        v = resolve_link(c, pg, parent, raw)
+                        if v is None:
+                            raise ValueError("linked record not found")
+                    else:
+                        v = convert_value(col["type"], raw)
+                    names.append(sql.Identifier(cname))
+                    vals.append(v)
+                c.execute(sql.SQL("insert into {}.{} ({}) values ({})").format(
+                    sql.Identifier(pg), sql.Identifier(tname), sql.SQL(", ").join(names),
+                    sql.SQL(", ").join(sql.Placeholder() for _ in vals)), vals)
+            elif op == "update_row":
+                table = _tbl(design, tname)
+                sets, vals = [], []
+                for cname, raw in a["values"].items():
+                    col = next(x for x in table["columns"] if x["name"] == cname)
+                    if col["references"]:
+                        v = resolve_link(c, pg, _tbl(design, col["references"].split(".")[0]), raw)
+                        if v is None:
+                            raise ValueError("linked record not found")
+                    else:
+                        v = convert_value(col["type"], raw)
+                    sets.append(sql.SQL("{} = %s").format(sql.Identifier(cname)))
+                    vals.append(v)
+                c.execute(sql.SQL("update {}.{} set {} where id = any(%s)").format(
+                    sql.Identifier(pg), sql.Identifier(tname), sql.SQL(", ").join(sets)), vals + [list(a["ids"])])
+            elif op == "rename_table":
+                new = a["new_name"]
+                c.execute(sql.SQL("alter table {}.{} rename to {}").format(
+                    sql.Identifier(pg), sql.Identifier(tname), sql.Identifier(new)))
                 for t in design["tables"]:
                     if t["name"] == tname:
-                        t["columns"] = [x for x in t["columns"] if x["name"] != a["column"]]
+                        t["name"] = new
+                    for col in t["columns"]:
+                        if col["references"] and col["references"].split(".")[0] == tname:
+                            col["references"] = new + ".id"
+            elif op == "rename_column":
+                new = a["new_name"]
+                c.execute(sql.SQL("alter table {}.{} rename column {} to {}").format(
+                    sql.Identifier(pg), sql.Identifier(tname), sql.Identifier(a["column"]), sql.Identifier(new)))
+                for col in _tbl(design, tname)["columns"]:
+                    if col["name"] == a["column"]:
+                        col["name"] = new
+            elif op == "add_relation":
+                table = _tbl(design, tname)
+                cname, parent = a["column"], a["references"]
+                existing = next((x for x in table["columns"] if x["name"] == cname), None)
+                if existing is None:
+                    c.execute(sql.SQL("alter table {}.{} add column {} integer references {}.{} (id)").format(
+                        sql.Identifier(pg), sql.Identifier(tname), sql.Identifier(cname),
+                        sql.Identifier(pg), sql.Identifier(parent)))
+                    table["columns"].append({"name": cname, "type": "integer", "required": False,
+                                             "primary_key": False, "references": parent + ".id"})
+                else:
+                    c.execute(sql.SQL("alter table {}.{} add foreign key ({}) references {}.{} (id)").format(
+                        sql.Identifier(pg), sql.Identifier(tname), sql.Identifier(cname),
+                        sql.Identifier(pg), sql.Identifier(parent)))
+                    existing["references"] = parent + ".id"
         c.execute("update datagenie_businesses set design=%s where id=%s", (json.dumps(design), biz_id))
+
+
+
+def find_rows(biz, tname, col, value, limit=21):
+    base = sql.SQL("select id from {}.{}").format(sql.Identifier(biz["pg_schema"]), sql.Identifier(tname))
+    if col is None:
+        q, params = base + sql.SQL(" order by id limit 2"), ()
+    else:
+        q = base + sql.SQL(" where lower({}::text) = lower(%s) order by id limit %s").format(sql.Identifier(col))
+        params = (value, limit)
+    with connect() as c:
+        return [r[0] for r in c.execute(q, params).fetchall()]
