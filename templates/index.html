@@ -5,6 +5,13 @@
   .hero h1 { color:#fff; font-size:40px; margin:0 0 10px; }
   .hero p { margin:0; color:#cfdcff; font-size:18px; font-weight:600; max-width:560px; }
   .actions { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:18px; }
+
+  @media (max-width:640px) {
+    .hero { padding:26px 20px; border-radius:12px; }
+    .hero h1 { font-size:27px; }
+    .hero p { font-size:16px; }
+    .actions .btn, .actions button { width:100%; text-align:center; }
+  }
 </style>
 <div class="hero">
   <h1>Describe your business.<br>Let AI build your database.</h1>

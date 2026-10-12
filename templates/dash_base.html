@@ -13,6 +13,13 @@
   .del:hover { background:#f8d4d4; }
   .ok { background:#dff3e9; color:#0f7a4a; border:1px solid #b9dfca; padding:11px 14px; border-radius:8px; margin-bottom:14px; font-weight:600; }
   @media (max-width:720px) { .dash { grid-template-columns:1fr; } }
+
+  @media (max-width:640px) {
+    .side { display:flex; overflow-x:auto; gap:6px; padding:8px; }
+    .side a { white-space:nowrap; flex:0 0 auto; }
+    .side hr { display:none; }
+    .form-grid { grid-template-columns:1fr; }
+  }
 </style>
 <h1>{{ biz.title }}</h1>
 <div class="dash">

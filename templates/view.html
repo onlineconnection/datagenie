@@ -11,6 +11,12 @@
   .scroll { overflow-x: auto; }
   .bar { display: flex; gap: 8px; margin-bottom: 12px; }
   .bar input { flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+
+  @media (max-width:640px) {
+    .tabs { flex-wrap:nowrap; overflow-x:auto; padding-bottom:6px; }
+    .tabs a { white-space:nowrap; }
+    .stats { grid-template-columns:1fr 1fr; }
+  }
 </style>
 
 <h1>{{ biz.title }}</h1>
