@@ -52,7 +52,7 @@ def ask(model, description):
         f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
         headers={"x-goog-api-key": KEY},
         json={"contents": [{"parts": [{"text": INSTRUCTIONS + description}]}],
-              "generationConfig": {"maxOutputTokens": 6000, "temperature": 0.3}},
+              "generationConfig": gen_config(6000, 0.3)},
         timeout=TIMEOUT)
     if r.status_code != 200:
         return None
@@ -74,3 +74,11 @@ def design(description):
         bps = adapt.load_blueprints()
         return bps[adapt.keyword_match(description, bps)], "fallback", round(time.time() - start, 1)
     return None, "failed", round(time.time() - start, 1)
+
+
+def gen_config(tokens, temp):
+    cfg = {"maxOutputTokens": tokens, "temperature": temp}
+    level = os.getenv("GEMMA_THINKING")
+    if level:
+        cfg["thinkingConfig"] = {"thinkingLevel": level}
+    return cfg

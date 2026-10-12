@@ -6,6 +6,7 @@ from designer import design
 from validator import validate_schema
 import db
 import genie
+import askdata
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY") or secrets.token_hex(32)
@@ -242,7 +243,7 @@ def genie_plan(biz_id):
     message = str(data.get("message", "")).strip()[:600]
     if len(message) < 3:
         return jsonify(error="Tell me what you would like to change.")
-    result = genie.plan(biz, message)
+    result = askdata.answer(biz, message) if askdata.is_question(message) else genie.plan(biz, message)
     if result is None:
         return jsonify(error="GenieAI took too long. Try a shorter request, or use the instant ones like: Delete the X table.")
     return jsonify(result)

@@ -27,6 +27,12 @@
   .g-form { display:flex; gap:8px; padding:12px; border-top:1px solid var(--line); background:#fff; }
   .g-form button { padding:10px 18px; }
   @media (max-width:520px) { .g-panel { right:14px; left:14px; width:auto; max-width:none; } }
+  .g-res { padding:10px; }
+  .g-scroll { overflow-x:auto; }
+  .g-t { border-collapse:collapse; width:100%; font-size:13px; }
+  .g-t th { text-align:left; font-size:11px; color:var(--muted); text-transform:uppercase; padding:6px 8px; border-bottom:2px solid var(--line); }
+  .g-t td { padding:7px 8px; border-bottom:1px solid var(--line); font-weight:600; }
+  .g-big { font-size:30px; font-weight:800; color:var(--brand); padding:4px 6px; }
 </style>
 
 <button class="g-fab" id="gFab" type="button"><span class="g-mark">G</span>GenieAI</button>
@@ -37,7 +43,7 @@
     <button class="g-x" id="gClose" type="button">&times;</button>
   </div>
   <div class="g-log" id="gLog">
-    <div class="g-msg g-bot">Hi, I am GenieAI. I can add and edit records, rename, create or delete tables and fields, and link tables together. Simple requests are instant. I always show you the changes before anything happens.</div>
+    <div class="g-msg g-bot">Hi, I am GenieAI. I can add and edit records, rename, create or delete tables and fields, and link tables together. You can also ask questions like: How many products do I have? Simple requests are instant. I always show you the changes before anything happens.</div>
     <div class="g-chips">
       <button type="button" class="g-chip" data-t="Add 3 sample records to {{ biz.design.tables[0].name | pretty }}">Add 3 sample records to {{ biz.design.tables[0].name | pretty }}</button>
       {% if biz.design.tables | length > 1 %}<button type="button" class="g-chip" data-t="Link {{ biz.design.tables[0].name | pretty }} to {{ biz.design.tables[1].name | pretty }}">Link {{ biz.design.tables[0].name | pretty }} to {{ biz.design.tables[1].name | pretty }}</button>{% endif %}
@@ -75,6 +81,27 @@
       .then(function (r) { return r.json(); });
   }
   function setBusy(b) { busy = b; send.disabled = b; input.disabled = b; if (!b) input.focus(); }
+
+  function showTable(d) {
+    var box = document.createElement('div');
+    box.className = 'g-plan g-res';
+    if (!d.rows.length) {
+      var p = document.createElement('div'); p.style.fontWeight = '600'; p.textContent = 'No matching records.'; box.appendChild(p);
+    } else if (d.rows.length === 1 && d.headers.length === 1) {
+      var lab = document.createElement('div'); lab.className = 'sub'; lab.style.fontWeight = '700'; lab.textContent = d.headers[0];
+      var big = document.createElement('div'); big.className = 'g-big'; big.textContent = d.rows[0][0];
+      box.appendChild(lab); box.appendChild(big);
+    } else {
+      var wrap = document.createElement('div'); wrap.className = 'g-scroll';
+      var tb = document.createElement('table'); tb.className = 'g-t';
+      var hr = tb.insertRow();
+      d.headers.forEach(function (h) { var th = document.createElement('th'); th.textContent = h; hr.appendChild(th); });
+      d.rows.forEach(function (r) { var tr = tb.insertRow(); r.forEach(function (v) { tr.insertCell().textContent = v; }); });
+      wrap.appendChild(tb); box.appendChild(wrap);
+    }
+    log.appendChild(box);
+    log.scrollTop = log.scrollHeight;
+  }
 
   function showPlan(data) {
     var box = document.createElement('div');
@@ -130,6 +157,7 @@
       if (d.error) { msg(d.error, 'g-msg g-bot g-warn'); return; }
       if (d.reply) msg(d.reply);
       (d.errors || []).forEach(function (t) { msg(t, 'g-msg g-bot g-warn'); });
+      if (d.headers) showTable(d);
       if (d.actions && d.actions.length) showPlan(d);
     }).catch(function () {
       clearInterval(timer); wait.remove();

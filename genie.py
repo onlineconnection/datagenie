@@ -100,7 +100,7 @@ def ask(design, message):
             f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent",
             headers={"x-goog-api-key": KEY},
             json={"contents": [{"parts": [{"text": build_prompt(design, message)}]}],
-                  "generationConfig": {"maxOutputTokens": 5000, "temperature": 0.2}},
+                  "generationConfig": designer.gen_config(5000, 0.2)},
             timeout=TIMEOUT)
         if r.status_code != 200:
             return None
