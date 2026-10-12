@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Import from Excel{% endblock %}
+{% block content %}
+<h1>Import from Excel</h1>
+<p class="sub">Each sheet becomes a table. Each column heading becomes a field.</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<div class="card">
+  <form method="post" enctype="multipart/form-data" onsubmit="this.querySelector('button').disabled=true;this.querySelector('button').textContent='Reading file...'">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="file" name="file" accept=".xlsx,.csv" required style="margin-bottom:14px">
+    <p class="sub">Excel (.xlsx) or CSV, up to 2 MB, 15 sheets, 2,000 rows per sheet.</p>
+    <button class="btn" type="submit">Import</button>
+  </form>
+</div>
+{% endblock %}

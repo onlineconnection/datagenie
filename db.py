@@ -494,3 +494,43 @@ def biz_by_token(token):
         r = c.execute("select id from datagenie_businesses where share_token=%s and status='active'",
                       (token,)).fetchone()
     return get_business(r[0]) if r else None
+
+
+def save_import(title, design, data):
+    biz_id = save_pending("Imported from " + title, design)
+    with connect() as c:
+        c.execute("alter table datagenie_businesses add column if not exists import_rows jsonb")
+        c.execute("update datagenie_businesses set import_rows=%s where id=%s", (json.dumps(data), biz_id))
+    return biz_id
+
+
+def load_import(biz_id):
+    try:
+        with connect() as c:
+            r = c.execute("select import_rows, pg_schema from datagenie_businesses where id=%s and status='active'",
+                          (biz_id,)).fetchone()
+            if not r or not r[0] or not str(r[1]).startswith("biz_"):
+                return
+            data, pg = r
+            for t, d in data.items():
+                cols, rows = d["cols"], d["rows"]
+                if not cols or not rows:
+                    continue
+                q = sql.SQL("insert into {}.{} ({}) values ({})").format(
+                    sql.Identifier(pg), sql.Identifier(t),
+                    sql.SQL(", ").join(sql.Identifier(x) for x in cols),
+                    sql.SQL(", ").join([sql.Placeholder()] * len(cols)))
+                with c.cursor() as cur:
+                    cur.executemany(q, rows)
+            c.execute("update datagenie_businesses set import_rows=null where id=%s", (biz_id,))
+    except Exception as e:
+        print("import load failed:", e)
+
+
+_orig_create_tables = create_tables
+
+
+def create_tables(biz_id):
+    result = _orig_create_tables(biz_id)
+    load_import(biz_id)
+    return result

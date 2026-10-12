@@ -375,6 +375,37 @@ def export_xlsx(biz_id):
                     headers={"Content-Disposition": f"attachment; filename={name}.xlsx"})
 
 
+app.config.setdefault("MAX_CONTENT_LENGTH", 3 * 1024 * 1024)
+
+
+@app.route("/import", methods=["GET", "POST"])
+@login_required
+def import_data():
+    import xlsx_import, validator
+    if request.method == "GET":
+        return render_template("import.html", error=None)
+    f = request.files.get("file")
+    name = (f.filename or "") if f else ""
+    if not f or not name.lower().endswith((".xlsx", ".csv")):
+        return render_template("import.html", error="Please choose an .xlsx or .csv file.")
+    try:
+        schema, rows = xlsx_import.build(f.read(), name)
+    except ValueError as e:
+        return render_template("import.html", error=str(e))
+    except Exception:
+        return render_template("import.html", error="That file could not be read. Try saving it again as .xlsx.")
+    ok, cleaned, errors = validator.validate_schema(schema)
+    if not ok or not cleaned.get("tables"):
+        return render_template("import.html", error="That file could not be turned into tables.")
+    data = {}
+    for t in cleaned["tables"]:
+        cols = [c["name"] for c in t["columns"] if not c["primary_key"]]
+        data[t["name"]] = {"cols": cols, "rows": [[r.get(c) for c in cols] for r in rows.get(t["name"], [])]}
+    biz_id = db.save_import(name, cleaned, data)
+    db.set_owner(biz_id, session["uid"])
+    return redirect(url_for("review", biz_id=biz_id))
+
+
 # ---------- database suggestions ----------
 def load_suggestions():
     items = []
