@@ -1,0 +1,12 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.git/
+.env
+github_token
+*.token
+test_*.py
+debug_gemma.py
+speedtest.py
+*.xlsx
