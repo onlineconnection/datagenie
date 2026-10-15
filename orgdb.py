@@ -14,6 +14,7 @@ def init_orgs():
             name text not null,
             access text not null default 'own',
             created_at timestamptz not null default now())""")
+        c.execute("alter table datagenie_roles add column if not exists person_table text")
         c.execute("create unique index if not exists datagenie_roles_uq on datagenie_roles (biz_id, lower(name))")
         c.execute("""create table if not exists datagenie_members (
             id serial primary key,
@@ -79,17 +80,17 @@ def list_public(tslug, sub, term):
 
 def list_roles(biz_id):
     with db.connect() as c:
-        rows = c.execute("select r.id, r.name, r.access, "
+        rows = c.execute("select r.id, r.name, r.access, r.person_table, "
                          "(select count(*) from datagenie_members m where m.role_id = r.id) "
                          "from datagenie_roles r where r.biz_id=%s order by r.name", (biz_id,)).fetchall()
-    return [{"id": r[0], "name": r[1], "access": r[2], "members": r[3]} for r in rows]
+    return [{"id": r[0], "name": r[1], "access": r[2], "person_table": r[3], "members": r[4]} for r in rows]
 
 
-def add_role(biz_id, name, access):
+def add_role(biz_id, name, access, person_table=None):
     try:
         with db.connect() as c:
-            return c.execute("insert into datagenie_roles (biz_id, name, access) values (%s,%s,%s) returning id",
-                             (biz_id, name, access)).fetchone()[0]
+            return c.execute("insert into datagenie_roles (biz_id, name, access, person_table) values (%s,%s,%s,%s) returning id",
+                             (biz_id, name, access, person_table)).fetchone()[0]
     except psycopg.errors.UniqueViolation:
         return None
 
@@ -201,3 +202,16 @@ if not getattr(db, "_org_purge_installed", False):
             return result
         db.delete_user = _delete_user
     db._org_purge_installed = True
+
+
+
+def record_options(biz, tname, limit=500):
+    table = db.get_table(biz, tname)
+    if not table:
+        return []
+    lab = db.label_col(table)
+    q = sql.SQL("select id, {} from {}.{} order by {}, id limit %s").format(
+        sql.Identifier(lab), sql.Identifier(biz["pg_schema"]), sql.Identifier(tname), sql.Identifier(lab))
+    with db.connect() as c:
+        rows = c.execute(q, (limit,)).fetchall()
+    return [[r[0], (str(r[1]) if r[1] is not None else "Record") + " (#" + str(r[0]) + ")"] for r in rows]

@@ -36,7 +36,7 @@ ROLE_HINTS = {
     "community": ["Member", "Leader", "Volunteer"],
     "default": ["Staff", "Member", "Manager"],
 }
-ACCESS = {"own": "Sees only their own records", "view_all": "Can view everything (read only)"}
+ACCESS = {"own": "Only their own information", "view_all": "Everything, view only"}
 USER_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{2,29}$")
 ROLE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9 ]{1,39}$")
 FAILS = {}
@@ -222,14 +222,22 @@ def settings_page(biz):
 @admin_biz
 def members_page(biz):
     members = orgdb.list_members(biz["id"])
+    roles = orgdb.list_roles(biz["id"])
     by = {}
     for m in members:
         if m["record_table"] and m["record_id"] is not None:
             by.setdefault(m["record_table"], []).append(m["record_id"])
     labels = {tn: orgdb.record_labels(biz, tn, ids) for tn, ids in by.items()}
+    data = {}
+    for r in roles:
+        pt = r["person_table"]
+        entry = {"access": r["access"], "table": pt or "", "table_label": pretty(pt) if pt else "", "options": []}
+        if r["access"] == "own" and pt:
+            entry["options"] = orgdb.record_options(biz, pt)
+        data[str(r["id"])] = entry
     meta = orgdb.org_meta(biz["id"])
-    return render_template("members.html", biz=biz, current="__members", roles=orgdb.list_roles(biz["id"]),
-                           members=members, labels=labels, access=ACCESS,
+    return render_template("members.html", biz=biz, current="__members", roles=roles, members=members,
+                           labels=labels, access=ACCESS, data=data, tables=biz["design"]["tables"],
                            hints=ROLE_HINTS.get(meta["type"], ROLE_HINTS["default"]),
                            link=url_for("org.org_page", biz_id=biz["id"], _external=True))
 
@@ -243,14 +251,22 @@ def back(biz):
 def add_role(biz):
     name = " ".join((request.form.get("name") or "").split())
     access = request.form.get("access", "")
+    person_table = None
     if not ROLE_RE.match(name) or name.lower() == "admin":
         flash("Use a role name of 2 to 40 letters or numbers. Admin is reserved.", "err")
-    elif access not in ACCESS:
-        flash("Choose what this role can see.", "err")
-    elif orgdb.add_role(biz["id"], name, access) is None:
+        return back(biz)
+    if access not in ACCESS:
+        flash("Choose what this role should see.", "err")
+        return back(biz)
+    if access == "own":
+        person_table = (request.form.get("person_table") or "").strip()
+        if not db.get_table(biz, person_table):
+            flash("Choose which table lists these people, for example Students.", "err")
+            return back(biz)
+    if orgdb.add_role(biz["id"], name, access, person_table) is None:
         flash("That role already exists.", "err")
     else:
-        flash("Role added.", "ok")
+        flash("Role added. Now add people to it in step 2.", "ok")
     return back(biz)
 
 
@@ -258,7 +274,7 @@ def add_role(biz):
 @admin_biz
 def del_role(biz, role_id):
     orgdb.delete_role(biz["id"], role_id)
-    flash("Role deleted, along with its members.", "ok")
+    flash("Role deleted, along with its people.", "ok")
     return back(biz)
 
 
@@ -287,26 +303,27 @@ def add_member(biz):
     if not pw:
         pw = gen_password()
     rtable, rec_id = None, None
-    tname = (f.get("record_table") or "").strip()
-    value = (f.get("record_value") or "").strip()
-    if tname or value:
-        table = db.get_table(biz, tname)
-        if not table or not value:
-            flash("To link a record, choose the table and type the record name or number.", "err")
+    if role["access"] == "own":
+        pt = role["person_table"]
+        table = db.get_table(biz, pt) if pt else None
+        if not table:
+            flash("This role is not linked to a table. Delete it and create it again.", "err")
+            return back(biz)
+        try:
+            chosen = int(f.get("record_id", ""))
+        except ValueError:
+            flash("Select who this person is in your records.", "err")
             return back(biz)
         with db.connect() as c:
-            rec_id = db.resolve_link(c, biz["pg_schema"], table, value)
+            rec_id = db.resolve_link(c, biz["pg_schema"], table, str(chosen))
         if rec_id is None:
-            flash(f"I could not find '{value}' in {pretty(tname)}.", "err")
+            flash("That record no longer exists.", "err")
             return back(biz)
-        rtable = tname
-    elif role["access"] == "own":
-        flash("This role sees only its own records, so link the member to their record.", "err")
-        return back(biz)
+        rtable = pt
     if orgdb.add_member(biz["id"], username, generate_password_hash(pw), name, role_id, rtable, rec_id) is None:
         flash("That username is already used in this organization.", "err")
     else:
-        flash(f"Member added. Username: {username}   Password: {pw}   Write the password down, it is shown only once.", "ok")
+        flash(f"Person added. Username: {username}   Password: {pw}   Write the password down, it is shown only once.", "ok")
     return back(biz)
 
 

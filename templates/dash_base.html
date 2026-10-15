@@ -29,7 +29,7 @@
     <a href="{{ url_for('table_page', biz_id=biz.id, tname=t.name) }}" class="{{ 'on' if current == t.name }}">{{ t.name | pretty }}</a>
     {% endfor %}
     <hr>
-    <a href="{{ url_for('org.members_page', biz_id=biz.id) }}" class="{{ 'on' if current == '__members' }}">Members &amp; roles</a>
+    <a href="{{ url_for('org.members_page', biz_id=biz.id) }}" class="{{ 'on' if current == '__members' }}">People &amp; access</a>
     <a href="{{ url_for('org.settings_page', biz_id=biz.id) }}" class="{{ 'on' if current == '__settings' }}">Organization settings</a>
     <a href="{{ url_for('view', biz_id=biz.id) }}">View final product ↗</a>
   </nav>

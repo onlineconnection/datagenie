@@ -1,70 +1,105 @@
 {% extends "dash_base.html" %}
-{% block title %}Members and roles{% endblock %}
+{% block title %}People and access{% endblock %}
 {% block panel %}
+<style>
+  .step { display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+  .step i { width:28px; height:28px; border-radius:50%; background:var(--brand); color:#fff; display:flex; align-items:center; justify-content:center; font-style:normal; font-weight:800; font-size:14px; flex:0 0 auto; }
+  .step strong { font-size:18px; }
+  .opt { display:flex; gap:12px; align-items:flex-start; border:1.5px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:10px; cursor:pointer; background:#fff; color:var(--ink); font-size:15px; }
+  .opt:has(input:checked) { border-color:var(--brand); background:var(--soft); }
+  .opt input { width:auto; margin-top:4px; }
+  .opt b { display:block; color:var(--ink); font-weight:800; }
+  .opt span { color:var(--muted); font-size:14px; font-weight:500; }
+  .narrow { max-width:380px; }
+  .pwnote { background:#fff6e5; border:1px solid #f2d9a6; color:#8a5200; padding:10px 12px; border-radius:8px; font-weight:600; font-size:14px; }
+</style>
+
 <div class="card">
-  <strong>How members sign in</strong>
-  <p class="sub">Give members this address. They choose their role and sign in with the username and password you create for them.</p>
+  <strong>Sign-in address for your people</strong>
+  <p class="sub" style="margin:4px 0 10px">Share this link. They choose their role on it and sign in with the username and password you give them.</p>
   <input readonly value="{{ link }}" onclick="this.select()">
 </div>
 
 <div class="card">
-  <strong>Roles</strong>
-  <p class="sub">A role decides what its members can see. Create the roles first, then add members.</p>
-  <form method="post" action="{{ url_for('org.add_role', biz_id=biz.id) }}" class="form-grid">
+  <div class="step"><i>1</i><strong>Create roles</strong></div>
+  <p class="sub">A role is a type of person who will sign in, such as Student or Teacher.</p>
+  <form method="post" action="{{ url_for('org.add_role', biz_id=biz.id) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <div><label>Role name</label><input name="name" list="hints" required placeholder="For example Student">
-      <datalist id="hints">{% for h in hints %}<option value="{{ h }}">{% endfor %}</datalist></div>
-    <div><label>What can this role see?</label>
-      <select name="access">{% for k, v in access.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select></div>
-    <div style="align-self:end"><button type="submit">Add role</button></div>
+    <label>Role name</label>
+    <input class="narrow" id="rname" name="name" required placeholder="For example Student" autocomplete="off">
+    <div class="chips" style="margin:8px 0 16px">
+      {% for h in hints %}<button type="button" class="chip" data-n="{{ h }}">{{ h }}</button>{% endfor %}
+    </div>
+    <label>What should this role see?</label>
+    <label class="opt"><input type="radio" name="access" value="own" checked>
+      <div><b>Only their own information</b><span>Best for students, patients or customers. They see only the records that belong to them.</span></div></label>
+    <label class="opt"><input type="radio" name="access" value="view_all">
+      <div><b>Everything, view only</b><span>Best for teachers or managers. They can see all records but cannot change anything.</span></div></label>
+    <div id="ptWrap" style="margin-bottom:14px">
+      <label>Which table lists these people?</label>
+      <select class="narrow" name="person_table" id="pt">
+        <option value="">Choose a table...</option>
+        {% for t in tables %}<option value="{{ t.name }}">{{ t.name | pretty }}</option>{% endfor %}
+      </select>
+      <p class="sub" style="margin:6px 0 0">For example, choose Students for a Student role.</p>
+    </div>
+    <button type="submit">Add role</button>
   </form>
+
   {% if roles %}
-  <table>
-    <tr><th>Role</th><th>Access</th><th>Members</th><th></th></tr>
+  <table style="margin-top:18px">
+    <tr><th>Role</th><th>Sees</th><th>People</th><th></th></tr>
     {% for r in roles %}
-    <tr><td><strong>{{ r.name }}</strong></td><td>{{ access[r.access] }}</td><td>{{ r.members }}</td>
-      <td><form method="post" action="{{ url_for('org.del_role', biz_id=biz.id, role_id=r.id) }}" onsubmit="return confirm('Delete this role and its {{ r.members }} member(s)?')">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="del" type="submit">Delete</button></form></td></tr>
+    <tr>
+      <td><strong>{{ r.name }}</strong></td>
+      <td>{{ access[r.access] }}{% if r.access == 'own' %}{% if r.person_table %} (from {{ r.person_table | pretty }}){% else %}. Not linked to a table, delete it and create it again{% endif %}{% endif %}</td>
+      <td>{{ r.members }}</td>
+      <td><form method="post" action="{{ url_for('org.del_role', biz_id=biz.id, role_id=r.id) }}" onsubmit="return confirm('Delete this role and its {{ r.members }} people?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="del" type="submit">Delete</button></form></td>
+    </tr>
     {% endfor %}
   </table>
   {% endif %}
 </div>
 
 <div class="card">
-  <strong>Add a member</strong>
+  <div class="step"><i>2</i><strong>Add people</strong></div>
   {% if not roles %}
-    <p class="sub">Add a role above first.</p>
+    <p class="sub" style="margin:8px 0 0">Create a role in step 1 first.</p>
   {% else %}
-  <form method="post" action="{{ url_for('org.add_member', biz_id=biz.id) }}" style="margin-top:12px">
+  <p class="sub">Give each person a username and a role. Leave the password empty and one is made for you.</p>
+  <form method="post" action="{{ url_for('org.add_member', biz_id=biz.id) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-grid">
       <div><label>Full name *</label><input name="display_name" required></div>
       <div><label>Username or ID *</label><input name="username" required autocomplete="off" placeholder="For example stu001"></div>
       <div><label>Password</label><input name="password" autocomplete="off" placeholder="Leave empty to generate one"></div>
-      <div><label>Role *</label><select name="role_id" required>{% for r in roles %}<option value="{{ r.id }}">{{ r.name }}</option>{% endfor %}</select></div>
-      <div><label>Their record: table</label>
-        <select name="record_table"><option value="">None</option>{% for t in biz.design.tables %}<option value="{{ t.name }}">{{ t.name | pretty }}</option>{% endfor %}</select></div>
-      <div><label>Their record: name or number</label><input name="record_value" placeholder="For example John Doe"></div>
+      <div><label>Role *</label>
+        <select name="role_id" id="roleSel" required>{% for r in roles %}<option value="{{ r.id }}">{{ r.name }}</option>{% endfor %}</select></div>
     </div>
-    <p class="sub" style="margin-top:0">Roles that see only their own records need this link. Type the record's name, or its number if two records share a name.</p>
-    <button type="submit">Add member</button>
+    <div id="who" style="display:none;margin-bottom:14px">
+      <label id="whoLabel">Who is this person in your records?</label>
+      <select class="narrow" name="record_id" id="whoSel"></select>
+      <p class="sub" id="whoNote" style="margin:6px 0 0"></p>
+    </div>
+    <button type="submit">Add person</button>
   </form>
   {% endif %}
 </div>
 
 {% if members %}
 <div class="card scroll">
-  <strong>Members ({{ members | length }})</strong>
+  <div class="step"><i>3</i><strong>People ({{ members | length }})</strong></div>
   <table>
-    <tr><th>Name</th><th>Username</th><th>Role</th><th>Linked record</th><th></th></tr>
+    <tr><th>Name</th><th>Username</th><th>Role</th><th>Their record</th><th></th></tr>
     {% for m in members %}
     <tr>
       <td>{{ m.display_name }}</td><td>{{ m.username }}</td><td>{{ m.role }}</td>
-      <td>{% if m.record_table %}{{ m.record_table | pretty }}: {{ labels.get(m.record_table, {}).get(m.record_id, '#' ~ m.record_id) }}{% endif %}</td>
+      <td>{% if m.record_table %}{{ labels.get(m.record_table, {}).get(m.record_id, '#' ~ m.record_id) }}{% else %}All records{% endif %}</td>
       <td style="white-space:nowrap">
-        <form style="display:inline" method="post" action="{{ url_for('org.reset_member', biz_id=biz.id, member_id=m.id) }}" onsubmit="return confirm('Create a new password for this member?')">
+        <form style="display:inline" method="post" action="{{ url_for('org.reset_member', biz_id=biz.id, member_id=m.id) }}" onsubmit="return confirm('Create a new password for this person?')">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost" style="padding:6px 12px;font-size:13px" type="submit">New password</button></form>
-        <form style="display:inline" method="post" action="{{ url_for('org.del_member', biz_id=biz.id, member_id=m.id) }}" onsubmit="return confirm('Remove this member?')">
+        <form style="display:inline" method="post" action="{{ url_for('org.del_member', biz_id=biz.id, member_id=m.id) }}" onsubmit="return confirm('Remove this person?')">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="del" type="submit">Remove</button></form>
       </td>
     </tr>
@@ -72,4 +107,51 @@
   </table>
 </div>
 {% endif %}
+
+<script>
+  var DATA = {{ data | tojson }};
+  document.querySelectorAll('[data-n]').forEach(function (b) {
+    b.addEventListener('click', function () { document.getElementById('rname').value = b.dataset.n; });
+  });
+  var pt = document.getElementById('pt'), ptWrap = document.getElementById('ptWrap');
+  function syncRole() {
+    var own = document.querySelector('input[name=access]:checked').value === 'own';
+    ptWrap.style.display = own ? '' : 'none';
+    pt.required = own;
+  }
+  document.querySelectorAll('input[name=access]').forEach(function (r) { r.addEventListener('change', syncRole); });
+  syncRole();
+
+  var roleSel = document.getElementById('roleSel');
+  if (roleSel) {
+    var who = document.getElementById('who'), whoSel = document.getElementById('whoSel');
+    var whoLabel = document.getElementById('whoLabel'), whoNote = document.getElementById('whoNote');
+    function syncWho() {
+      var d = DATA[roleSel.value];
+      whoSel.innerHTML = '';
+      if (!d || d.access !== 'own') { who.style.display = 'none'; whoSel.required = false; return; }
+      who.style.display = '';
+      if (!d.table) {
+        whoSel.required = false;
+        whoLabel.textContent = 'Who is this person in your records?';
+        whoNote.textContent = 'This role is not linked to a table. Delete it and create it again in step 1.';
+        return;
+      }
+      whoLabel.textContent = 'Who is this person in ' + d.table_label + '? *';
+      var first = document.createElement('option');
+      first.value = ''; first.textContent = 'Select...';
+      whoSel.appendChild(first);
+      d.options.forEach(function (o) {
+        var op = document.createElement('option');
+        op.value = o[0]; op.textContent = o[1];
+        whoSel.appendChild(op);
+      });
+      whoSel.required = true;
+      whoNote.textContent = d.options.length ? 'This person will see only the records linked to the one you pick.'
+        : 'There are no records in ' + d.table_label + ' yet. Add them in that section first.';
+    }
+    roleSel.addEventListener('change', syncWho);
+    syncWho();
+  }
+</script>
 {% endblock %}
