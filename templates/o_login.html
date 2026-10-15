@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block content %}
+<div class="card" style="max-width:430px;margin:30px auto;border-top:4px solid var(--brand)">
+  <p class="sub" style="margin:0;font-weight:700">{{ biz.title }}</p>
+  <h1 style="font-size:28px;margin-top:4px">Sign in as {{ role }}</h1>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="role" value="{{ role }}">
+    <p><label>Username or ID</label><input name="username" required autocomplete="off"></p>
+    <p><label>Password</label><input type="password" name="password" required></p>
+    <button type="submit" style="width:100%">Sign in</button>
+  </form>
+  <p class="sub" style="margin:16px 0 0"><a href="{{ url_for('org.org_page', biz_id=biz.id) }}">Choose a different role</a></p>
+</div>
+{% endblock %}

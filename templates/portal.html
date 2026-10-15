@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ biz.title }}{% endblock %}
+{% block content %}
+<style>
+  main { max-width:1100px; }
+  .tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .tabs a { padding:8px 14px; border-radius:20px; background:var(--soft); color:var(--brand); text-decoration:none; font-size:14px; font-weight:700; }
+  .tabs a.on { background:var(--brand); color:#fff; }
+  .scroll { overflow-x:auto; }
+  .bar { display:flex; gap:8px; margin-bottom:12px; }
+  @media (max-width:640px) { .tabs { flex-wrap:nowrap; overflow-x:auto; padding-bottom:6px; } .tabs a { white-space:nowrap; } }
+</style>
+<h1>{{ biz.title }}</h1>
+<p class="sub">Signed in as {{ m.display_name }} ({{ m.role }}). This is a read-only view{% if m.access == 'own' %} of your own records{% endif %}.</p>
+
+{% if not tabs %}
+<div class="card"><p class="sub" style="margin:0">There is nothing to show yet. Ask your administrator to link your account to your record.</p></div>
+{% else %}
+<div class="tabs">
+  {% for tn in tabs %}<a href="{{ url_for('org.portal', biz_id=biz.id, t=tn) }}" class="{{ 'on' if tn == table.name }}">{{ tn | pretty }}</a>{% endfor %}
+</div>
+<div class="card scroll">
+  <form class="bar" method="get">
+    <input type="hidden" name="t" value="{{ table.name }}">
+    <input name="q" value="{{ q }}" placeholder="Search {{ table.name | pretty }}">
+    <button type="submit">Search</button>
+  </form>
+  {% if rows %}
+  <table>
+    <tr>{% for col in table.columns %}<th>{{ '#' if col.primary_key else col.name | pretty }}</th>{% endfor %}</tr>
+    {% for r in rows %}
+    <tr>
+      {% for col in table.columns %}
+        {% set v = r[loop.index0] %}
+        <td>{% if v is none %}{% elif col.type == 'boolean' %}{{ 'Yes' if v else 'No' }}{% elif col.references %}{{ opts[col.name].get(v, v) }}{% else %}{{ v }}{% endif %}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="sub">{{ 'No matches.' if q else 'No records yet.' }}</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

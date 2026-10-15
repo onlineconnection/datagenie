@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Find your organization{% endblock %}
+{% block content %}
+<style>
+  main { max-width:1000px; }
+  .crumbs { font-size:14px; font-weight:700; color:var(--muted); margin:0 0 6px; }
+  .crumbs a { text-decoration:none; }
+  .choice { display:block; text-decoration:none; color:inherit; background:#fff; border:1px solid var(--line); border-top:4px solid var(--brand); border-radius:12px; padding:22px; box-shadow:0 1px 3px rgba(11,31,68,.06); }
+  .choice:hover { border-color:var(--brand); box-shadow:0 8px 22px rgba(29,78,216,.14); }
+  .choice b { display:block; font-size:19px; font-weight:800; margin-bottom:4px; }
+  .choice span { color:var(--muted); font-size:14px; font-weight:500; }
+  .choice em { display:block; margin-top:12px; font-style:normal; font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--brand); }
+  .bar { display:flex; gap:8px; margin:14px 0 18px; }
+  .row { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  .foot { margin-top:28px; color:var(--muted); font-weight:600; }
+</style>
+
+{% if mode == 'types' %}
+  <h1>Find your organization</h1>
+  <p class="sub">Start by choosing what kind of organization you belong to.</p>
+  <div class="grid">
+    {% for t in types %}
+    <a class="choice" href="{{ url_for('org.find_type', tslug=t.slug) }}"><b>{{ t.label }}</b><span>{{ t.desc }}</span><em>{{ t.count }} listed</em></a>
+    {% endfor %}
+  </div>
+
+{% elif mode == 'subs' %}
+  <div class="crumbs"><a href="{{ url_for('org.find') }}">All types</a> / {{ label }}</div>
+  <h1>{{ label }}</h1>
+  <p class="sub">Choose the kind you are looking for.</p>
+  <div class="grid">
+    {% for s in subs %}
+    <a class="choice" href="{{ url_for('org.find_type', tslug=tslug, sub=s.slug) }}"><b>{{ s.label }}</b><em>{{ s.count }} listed</em></a>
+    {% endfor %}
+    <a class="choice" href="{{ url_for('org.find_type', tslug=tslug, sub='all') }}"><b>All {{ label }}</b><em>{{ total }} listed</em></a>
+  </div>
+
+{% else %}
+  <div class="crumbs">
+    <a href="{{ url_for('org.find') }}">All types</a> /
+    {% if has_subs %}<a href="{{ url_for('org.find_type', tslug=tslug) }}">{{ label }}</a> / {{ sub_label or 'All' }}{% else %}{{ label }}{% endif %}
+  </div>
+  <h1>{{ sub_label or label }}</h1>
+  <form class="bar" method="get">
+    <input type="hidden" name="sub" value="{{ sub }}">
+    <input id="live" name="q" value="{{ q }}" placeholder="Search by name" autocomplete="off">
+    <button type="submit">Search</button>
+  </form>
+  {% if orgs %}
+    <div id="list">
+    {% for o in orgs %}
+      <div class="card row org" data-name="{{ o.title | lower }}">
+        <div><strong style="font-size:18px">{{ o.title }}</strong>
+          {% if o.sub and labels.get(o.sub) %}<span class="tag" style="margin-left:8px">{{ labels[o.sub] }}</span>{% endif %}</div>
+        <a class="btn" href="{{ url_for('org.org_page', biz_id=o.id) }}">Open</a>
+      </div>
+    {% endfor %}
+    </div>
+    <script>
+      var live = document.getElementById('live');
+      live.addEventListener('input', function () {
+        var t = live.value.trim().toLowerCase();
+        document.querySelectorAll('.org').forEach(function (r) { r.style.display = !t || r.dataset.name.indexOf(t) > -1 ? '' : 'none'; });
+      });
+    </script>
+  {% else %}
+    <div class="card"><p class="sub" style="margin:0">No organizations found here yet.</p></div>
+  {% endif %}
+{% endif %}
+
+<p class="foot">Run an organization? <a href="{{ url_for('login') }}">Log in</a> or <a href="{{ url_for('signup') }}">create an account</a>.</p>
+{% endblock %}

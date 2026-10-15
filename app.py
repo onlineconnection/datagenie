@@ -151,8 +151,9 @@ def my():
 
 # ---------- design ----------
 @app.route("/")
-@login_required
 def home():
+    if not session.get("uid"):
+        return redirect(url_for("org.find"))
     return render_template("index.html", error=request.args.get("error"))
 
 
@@ -584,6 +585,10 @@ def edit_record(biz_id, tname, row_id):
         return redirect(url_for("table_page", biz_id=biz_id, tname=tname))
     return render_template("edit.html", biz=biz, table=table, current=tname, row=row,
                            opts=db.fk_options(biz, table))
+
+
+from portal import bp as org_bp
+app.register_blueprint(org_bp)
 
 
 if __name__ == "__main__":

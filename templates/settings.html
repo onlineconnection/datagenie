@@ -1,0 +1,36 @@
+{% extends "dash_base.html" %}
+{% block title %}Organization settings{% endblock %}
+{% block panel %}
+<div class="card">
+  <strong>Organization settings</strong>
+  <p class="sub">Choose what kind of organization this is. If you list it, people can find it from the first screen and sign in.</p>
+  <form method="post" style="max-width:460px">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <p><label>Type</label>
+      <select name="org_type" id="t">
+        <option value="">Not set</option>
+        {% for slug, t in types.items() %}<option value="{{ slug }}" {{ 'selected' if meta.type == slug }}>{{ t[0] }}</option>{% endfor %}
+      </select></p>
+    <p><label>Kind</label>
+      <select name="org_subtype" id="s">
+        <option value="">Not set</option>
+        {% for slug, t in types.items() %}{% for sslug, slabel in t[2] %}
+        <option value="{{ sslug }}" data-type="{{ slug }}" {{ 'selected' if meta.sub == sslug and meta.type == slug }}>{{ slabel }}</option>
+        {% endfor %}{% endfor %}
+      </select></p>
+    <p><label><input type="checkbox" name="listed" {{ 'checked' if meta.listed }} style="width:auto"> List this organization publicly</label></p>
+    <button type="submit">Save settings</button>
+  </form>
+</div>
+<script>
+  var t = document.getElementById('t'), s = document.getElementById('s');
+  function f() {
+    Array.from(s.options).forEach(function (o) {
+      var off = o.dataset.type && o.dataset.type !== t.value;
+      o.hidden = off; o.disabled = off;
+      if (off && o.selected) s.value = '';
+    });
+  }
+  t.addEventListener('change', f); f();
+</script>
+{% endblock %}

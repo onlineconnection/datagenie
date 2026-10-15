@@ -1,0 +1,75 @@
+{% extends "dash_base.html" %}
+{% block title %}Members and roles{% endblock %}
+{% block panel %}
+<div class="card">
+  <strong>How members sign in</strong>
+  <p class="sub">Give members this address. They choose their role and sign in with the username and password you create for them.</p>
+  <input readonly value="{{ link }}" onclick="this.select()">
+</div>
+
+<div class="card">
+  <strong>Roles</strong>
+  <p class="sub">A role decides what its members can see. Create the roles first, then add members.</p>
+  <form method="post" action="{{ url_for('org.add_role', biz_id=biz.id) }}" class="form-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div><label>Role name</label><input name="name" list="hints" required placeholder="For example Student">
+      <datalist id="hints">{% for h in hints %}<option value="{{ h }}">{% endfor %}</datalist></div>
+    <div><label>What can this role see?</label>
+      <select name="access">{% for k, v in access.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select></div>
+    <div style="align-self:end"><button type="submit">Add role</button></div>
+  </form>
+  {% if roles %}
+  <table>
+    <tr><th>Role</th><th>Access</th><th>Members</th><th></th></tr>
+    {% for r in roles %}
+    <tr><td><strong>{{ r.name }}</strong></td><td>{{ access[r.access] }}</td><td>{{ r.members }}</td>
+      <td><form method="post" action="{{ url_for('org.del_role', biz_id=biz.id, role_id=r.id) }}" onsubmit="return confirm('Delete this role and its {{ r.members }} member(s)?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="del" type="submit">Delete</button></form></td></tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</div>
+
+<div class="card">
+  <strong>Add a member</strong>
+  {% if not roles %}
+    <p class="sub">Add a role above first.</p>
+  {% else %}
+  <form method="post" action="{{ url_for('org.add_member', biz_id=biz.id) }}" style="margin-top:12px">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-grid">
+      <div><label>Full name *</label><input name="display_name" required></div>
+      <div><label>Username or ID *</label><input name="username" required autocomplete="off" placeholder="For example stu001"></div>
+      <div><label>Password</label><input name="password" autocomplete="off" placeholder="Leave empty to generate one"></div>
+      <div><label>Role *</label><select name="role_id" required>{% for r in roles %}<option value="{{ r.id }}">{{ r.name }}</option>{% endfor %}</select></div>
+      <div><label>Their record: table</label>
+        <select name="record_table"><option value="">None</option>{% for t in biz.design.tables %}<option value="{{ t.name }}">{{ t.name | pretty }}</option>{% endfor %}</select></div>
+      <div><label>Their record: name or number</label><input name="record_value" placeholder="For example John Doe"></div>
+    </div>
+    <p class="sub" style="margin-top:0">Roles that see only their own records need this link. Type the record's name, or its number if two records share a name.</p>
+    <button type="submit">Add member</button>
+  </form>
+  {% endif %}
+</div>
+
+{% if members %}
+<div class="card scroll">
+  <strong>Members ({{ members | length }})</strong>
+  <table>
+    <tr><th>Name</th><th>Username</th><th>Role</th><th>Linked record</th><th></th></tr>
+    {% for m in members %}
+    <tr>
+      <td>{{ m.display_name }}</td><td>{{ m.username }}</td><td>{{ m.role }}</td>
+      <td>{% if m.record_table %}{{ m.record_table | pretty }}: {{ labels.get(m.record_table, {}).get(m.record_id, '#' ~ m.record_id) }}{% endif %}</td>
+      <td style="white-space:nowrap">
+        <form style="display:inline" method="post" action="{{ url_for('org.reset_member', biz_id=biz.id, member_id=m.id) }}" onsubmit="return confirm('Create a new password for this member?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost" style="padding:6px 12px;font-size:13px" type="submit">New password</button></form>
+        <form style="display:inline" method="post" action="{{ url_for('org.del_member', biz_id=biz.id, member_id=m.id) }}" onsubmit="return confirm('Remove this member?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="del" type="submit">Remove</button></form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+{% endblock %}

@@ -71,7 +71,7 @@
   <a class="logo" href="{{ url_for('home') }}">Data<i>Genie</i></a>
   <span class="links">
   {% if session.get('uid') %}<a href="{{ url_for('my') }}">My databases</a> &nbsp;·&nbsp; <button type="button" class="acct" id="acctBtn">{{ session.get("email") }}</button> &nbsp;·&nbsp; <a href="{{ url_for('logout') }}">Log out</a>
-  {% else %}<a href="{{ url_for('login') }}">Log in</a>{% endif %}
+  {% elif session.get('mid') %}<span>{{ session.get('mname') }}</span> &nbsp;·&nbsp; <a href="{{ url_for('org.member_logout', biz_id=session.get('mbiz')) }}">Log out</a>{% else %}<a href="{{ url_for('org.find') }}">Find your organization</a> &nbsp;·&nbsp; <a href="{{ url_for('login') }}">Admin log in</a>{% endif %}
   </span>
 </div></header>
 <main>{% block content %}{% endblock %}</main>
