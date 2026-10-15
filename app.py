@@ -566,5 +566,25 @@ def delete_account():
     return render_template("account_delete.html", error=error, dbs=dbs)
 
 
+@app.route("/dashboard/<biz_id>/<tname>/edit/<int:row_id>", methods=["GET", "POST"])
+@login_required
+def edit_record(biz_id, tname, row_id):
+    biz = active_biz(biz_id)
+    table = db.get_table(biz, tname) or abort(404)
+    row = db.get_row(biz, table, row_id)
+    if not row:
+        abort(404)
+    if request.method == "POST":
+        errors = db.update_row(biz, table, row_id, request.form)
+        if errors:
+            for e in errors:
+                flash(e, "err")
+            return redirect(url_for("edit_record", biz_id=biz_id, tname=tname, row_id=row_id))
+        flash("Changes saved.", "ok")
+        return redirect(url_for("table_page", biz_id=biz_id, tname=tname))
+    return render_template("edit.html", biz=biz, table=table, current=tname, row=row,
+                           opts=db.fk_options(biz, table))
+
+
 if __name__ == "__main__":
     app.run(debug=True)

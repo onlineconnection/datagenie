@@ -650,3 +650,58 @@ def ext_apply(c, pg, design, a):
             base = base + sql.SQL(" where id = any(%s)")
             params.append(list(a["ids"]))
         c.execute(base, params)
+
+
+
+def get_row(biz, table, row_id):
+    cols = sql.SQL(", ").join(sql.Identifier(c["name"]) for c in table["columns"])
+    q = sql.SQL("select {} from {}.{} where id=%s").format(
+        cols, sql.Identifier(biz["pg_schema"]), sql.Identifier(table["name"]))
+    with connect() as c:
+        return c.execute(q, (row_id,)).fetchone()
+
+
+def update_row(biz, table, row_id, form):
+    values, errors = {}, []
+    for col in table["columns"]:
+        if col["primary_key"]:
+            continue
+        name, label = col["name"], col["name"].replace("_", " ").title()
+        if col["type"] == "boolean":
+            values[name] = form.get(name) is not None
+            continue
+        raw = (form.get(name) or "").strip()
+        if raw == "":
+            if col["required"]:
+                errors.append(f"{label} is required.")
+            else:
+                values[name] = None
+            continue
+        try:
+            if col["type"] == "integer":
+                v = int(raw)
+            elif col["type"] == "numeric":
+                v = Decimal(raw)
+            elif col["type"] == "date":
+                v = date.fromisoformat(raw)
+            elif col["type"] == "timestamp":
+                v = datetime.fromisoformat(raw)
+            else:
+                v = raw[:2000]
+        except (ValueError, InvalidOperation):
+            errors.append(f"{label} is not valid.")
+            continue
+        values[name] = v
+    if errors:
+        return errors
+    if not values:
+        return ["Nothing to save."]
+    q = sql.SQL("update {}.{} set {} where id=%s").format(
+        sql.Identifier(biz["pg_schema"]), sql.Identifier(table["name"]),
+        sql.SQL(", ").join(sql.SQL("{} = %s").format(sql.Identifier(k)) for k in values))
+    try:
+        with connect() as c:
+            c.execute(q, list(values.values()) + [row_id])
+    except psycopg.Error:
+        return ["Could not save. Check that the linked items exist."]
+    return []

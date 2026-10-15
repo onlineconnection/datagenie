@@ -1,0 +1,32 @@
+{% extends "dash_base.html" %}
+{% block title %}Edit {{ table.name | pretty }}{% endblock %}
+{% block panel %}
+<div class="card">
+  <strong>Edit {{ table.name | pretty }} #{{ row[0] }}</strong>
+  <form method="post" action="{{ url_for('edit_record', biz_id=biz.id, tname=table.name, row_id=row[0]) }}" style="margin-top:12px">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-grid">
+    {% for col in table.columns %}{% if not col.primary_key %}
+      {% set v = row[loop.index0] %}
+      <div>
+        <label>{{ col.name | pretty }}{% if col.required %} *{% endif %}</label>
+        {% if col.references %}
+          <select name="{{ col.name }}" {{ 'required' if col.required }}>
+            <option value="">Choose...</option>
+            {% for k, lab in opts[col.name].items() %}<option value="{{ k }}" {{ 'selected' if k == v }}>{{ lab }}</option>{% endfor %}
+          </select>
+        {% elif col.type == 'boolean' %}
+          <input type="checkbox" name="{{ col.name }}" {{ 'checked' if v }}>
+        {% elif col.type == 'timestamp' %}
+          <input type="datetime-local" name="{{ col.name }}" value="{{ v.strftime('%Y-%m-%dT%H:%M') if v else '' }}" {{ 'required' if col.required }}>
+        {% else %}
+          <input type="{{ INPUT[col.type] }}" name="{{ col.name }}" value="{{ v if v is not none else '' }}" {{ 'required' if col.required }} {% if col.type == 'numeric' %}step="any"{% endif %}>
+        {% endif %}
+      </div>
+    {% endif %}{% endfor %}
+    </div>
+    <button type="submit">Save changes</button>
+    <a class="btn ghost" href="{{ url_for('table_page', biz_id=biz.id, tname=table.name) }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}
