@@ -1,0 +1,50 @@
+<style>
+  .links .acct { background:transparent; color:#fff; padding:2px 0; border:0; border-bottom:1px dashed #7aa7ff; border-radius:0; font-weight:700; font-size:14px; cursor:pointer; }
+  .links .acct:hover { background:transparent; color:#bcd2ff; }
+  .dr-back { position:fixed; inset:0; background:rgba(11,31,68,.5); opacity:0; pointer-events:none; transition:opacity .2s; z-index:90; }
+  .dr-back.open { opacity:1; pointer-events:auto; }
+  .dr { position:fixed; top:0; left:0; bottom:0; width:310px; max-width:85vw; background:#fff; z-index:91; transform:translateX(-100%); transition:transform .25s ease; display:flex; flex-direction:column; box-shadow:8px 0 30px rgba(11,31,68,.25); }
+  .dr.open { transform:translateX(0); }
+  .dr-head { background:var(--ink); color:#fff; padding:22px 20px; }
+  .dr-head .av { width:46px; height:46px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:20px; margin-bottom:10px; }
+  .dr-head b { display:block; font-size:15px; word-break:break-all; }
+  .dr-head span { font-size:12px; color:#b8c7e6; font-weight:600; }
+  .dr-body { flex:1; overflow-y:auto; padding:12px; }
+  .dr-body a.item { display:block; padding:12px 14px; border-radius:8px; color:var(--ink); text-decoration:none; font-weight:700; }
+  .dr-body a.item:hover { background:var(--soft); color:var(--brand); }
+  .dr-danger { border-top:1px solid var(--line); padding:14px; }
+  .dr-danger small { display:block; font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#a4161a; margin-bottom:8px; }
+  .dr-danger a { display:block; text-align:center; }
+  .dr-x { position:absolute; top:10px; right:12px; background:none; color:#fff; font-size:26px; line-height:1; padding:2px 10px; }
+  .dr-x:hover { background:rgba(255,255,255,.15); }
+</style>
+<div class="dr-back" id="drBack"></div>
+<aside class="dr" id="dr" aria-label="Account menu">
+  <div class="dr-head">
+    <button class="dr-x" id="drX" type="button">&times;</button>
+    <div class="av">{{ (session.get('email') or '?')[0] | upper }}</div>
+    <b>{{ session.get('email') }}</b>
+    <span>Your account</span>
+  </div>
+  <div class="dr-body">
+    <a class="item" href="{{ url_for('my') }}">My databases</a>
+    <a class="item" href="{{ url_for('home') }}">New database</a>
+    <a class="item" href="{{ url_for('logout') }}">Log out</a>
+  </div>
+  <div class="dr-danger">
+    <small>Danger zone</small>
+    <a class="btn danger" href="{{ url_for('delete_account') }}">Delete account</a>
+  </div>
+</aside>
+<script>
+(function () {
+  var btn = document.getElementById('acctBtn'), dr = document.getElementById('dr'), back = document.getElementById('drBack');
+  if (!btn) return;
+  function open() { dr.classList.add('open'); back.classList.add('open'); }
+  function close() { dr.classList.remove('open'); back.classList.remove('open'); }
+  btn.addEventListener('click', open);
+  back.addEventListener('click', close);
+  document.getElementById('drX').addEventListener('click', close);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+})();
+</script>

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Delete account{% endblock %}
+{% block content %}
+<div class="card" style="max-width:540px;margin:30px auto;border-top:4px solid #a4161a">
+  <h1 style="font-size:26px">Delete your account?</h1>
+  <p class="sub">
+    This permanently deletes your account and
+    {% if dbs %}all {{ dbs }} of your database{{ '' if dbs == 1 else 's' }}, with every record in them.{% else %}everything you created.{% endif %}
+    It cannot be undone.
+  </p>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form method="post">
+    <p><label>Type your email <strong>{{ session.get('email') }}</strong> to confirm</label>
+    <input name="confirm" autocomplete="off" required></p>
+    <button class="danger" type="submit">Delete my account permanently</button>
+    <a class="btn ghost" href="{{ url_for('my') }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

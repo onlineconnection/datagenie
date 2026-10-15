@@ -552,3 +552,15 @@ def create_tables(biz_id):
     result = _orig_create_tables(biz_id)
     load_import(biz_id)
     return result
+
+
+
+def delete_user(user_id):
+    with connect() as c:
+        rows = c.execute("select id, pg_schema from datagenie_businesses where owner_id=%s", (user_id,)).fetchall()
+        for biz_id, pg in rows:
+            if pg and pg.startswith("biz_"):
+                c.execute(sql.SQL("drop schema if exists {} cascade").format(sql.Identifier(pg)))
+            c.execute("delete from datagenie_businesses where id=%s", (biz_id,))
+        c.execute("delete from datagenie_users where id=%s", (user_id,))
+    return len(rows)

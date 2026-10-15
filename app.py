@@ -540,5 +540,29 @@ def delete_database(biz_id):
     return render_template("delete.html", biz=biz, error=error, count=count)
 
 
+@app.route("/account/delete", methods=["GET", "POST"])
+@login_required
+def delete_account():
+    error = None
+    if request.method == "POST":
+        typed = (request.form.get("confirm") or "").strip().lower()
+        if typed != (session.get("email") or "").lower():
+            error = "The email you typed does not match. Nothing was deleted."
+        else:
+            try:
+                db.delete_user(session["uid"])
+            except Exception as e:
+                print("Account delete failed:", type(e).__name__, e)
+                error = "Could not delete your account. Please try again."
+            else:
+                session.clear()
+                return redirect(url_for("signup"))
+    try:
+        dbs = len(db.list_businesses(session["uid"]))
+    except Exception:
+        dbs = 0
+    return render_template("account_delete.html", error=error, dbs=dbs)
+
+
 if __name__ == "__main__":
     app.run(debug=True)
