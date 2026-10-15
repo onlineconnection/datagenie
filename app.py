@@ -8,6 +8,7 @@ from validator import validate_schema
 import db
 import genie
 import askdata
+import genie_ext
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY") or secrets.token_hex(32)
@@ -483,6 +484,7 @@ def genie_plan(biz_id):
     biz = active_biz(biz_id)
     data = request.get_json(silent=True) or {}
     message = str(data.get("message", "")).strip()[:600]
+    genie_ext.set_history(data.get("history"))
     if len(message) < 3:
         return jsonify(error="Tell me what you would like to change.")
     result = askdata.answer(biz, message) if askdata.is_question(message) else genie.plan(biz, message)
@@ -503,7 +505,7 @@ def genie_apply(biz_id):
         db.apply_actions(biz_id, actions)
     except Exception as e:
         print("GenieAI apply failed:", type(e).__name__, e)
-        msg = ("Some existing records do not match that link, so nothing was changed."
+        msg = ("Some records are connected to other records, so nothing was changed. Remove the connected records first."
                if "ForeignKey" in type(e).__name__ else "Could not apply the changes. Nothing was changed.")
         return jsonify(ok=False, error=msg)
     fresh = db.get_business(biz_id)

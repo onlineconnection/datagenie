@@ -43,7 +43,7 @@
     <button class="g-x" id="gClose" type="button">&times;</button>
   </div>
   <div class="g-log" id="gLog">
-    <div class="g-msg g-bot">Hi, I am GenieAI. I can add and edit records, rename, create or delete tables and fields, and link tables together. You can also ask questions like: How many products do I have? Simple requests are instant. I always show you the changes before anything happens.</div>
+    <div class="g-msg g-bot">Hi, I am GenieAI. I can add, edit and delete records, change many numbers at once, create, rename or delete tables and fields, change field types, make fields required, and link or unlink tables. You can also ask questions like: How many products do I have? Simple requests are instant. I always show you the changes before anything happens.</div>
     <div class="g-chips">
       <button type="button" class="g-chip" data-t="Add 3 sample records to {{ biz.design.tables[0].name | pretty }}">Add 3 sample records to {{ biz.design.tables[0].name | pretty }}</button>
       {% if biz.design.tables | length > 1 %}<button type="button" class="g-chip" data-t="Link {{ biz.design.tables[0].name | pretty }} to {{ biz.design.tables[1].name | pretty }}">Link {{ biz.design.tables[0].name | pretty }} to {{ biz.design.tables[1].name | pretty }}</button>{% endif %}
@@ -67,6 +67,7 @@
   var applyUrl = "{{ url_for('genie_apply', biz_id=biz.id) }}";
   var homeUrl = "{{ url_for('dashboard', biz_id=biz.id) }}";
   var busy = false;
+  var hist = [];
 
   function msg(text, cls) {
     var d = document.createElement('div');
@@ -148,11 +149,12 @@
     if (!text || busy) return;
     input.value = '';
     msg(text, 'g-me');
+    hist.push(text);
     var t0 = Date.now();
     var wait = msg('GenieAI is thinking... 0s. Complex requests can take up to 40 seconds.');
     var timer = setInterval(function () { wait.textContent = 'GenieAI is thinking... ' + Math.round((Date.now() - t0) / 1000) + 's. Complex requests can take up to 40 seconds.'; }, 1000);
     setBusy(true);
-    post(planUrl, { message: text }).then(function (d) {
+    post(planUrl, { message: text, history: hist.slice(-3) }).then(function (d) {
       clearInterval(timer); wait.remove();
       if (d.error) { msg(d.error, 'g-msg g-bot g-warn'); return; }
       if (d.reply) msg(d.reply);

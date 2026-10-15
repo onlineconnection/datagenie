@@ -376,6 +376,9 @@ def apply_actions(biz_id, actions):
     with connect() as c:
         for a in actions:
             op, tname = a["op"], a["table"]
+            if op in EXT_OPS:
+                ext_apply(c, pg, design, a)
+                continue
             if op == "add_table":
                 parts = [sql.SQL("{} integer generated always as identity primary key").format(sql.Identifier("id"))]
                 parts += [_col_sql(pg, col) for col in a["columns"] if col["name"] != "id"]
@@ -564,3 +567,86 @@ def delete_user(user_id):
             c.execute("delete from datagenie_businesses where id=%s", (biz_id,))
         c.execute("delete from datagenie_users where id=%s", (user_id,))
     return len(rows)
+
+
+
+# ---------- GenieAI extended ops ----------
+EXT_OPS = {"delete_row", "change_type", "set_required", "drop_relation", "adjust"}
+
+
+def _q(pg, tname):
+    return sql.SQL("{}.{}").format(sql.Identifier(pg), sql.Identifier(tname))
+
+
+def ids_where(biz, tname, col, ctype, value, limit):
+    q = sql.SQL("select id from {}").format(_q(biz["pg_schema"], tname))
+    params = []
+    if col:
+        if ctype == "text":
+            q = q + sql.SQL(" where lower({}) = lower(%s)").format(sql.Identifier(col))
+            params.append(str(value))
+        elif ctype == "timestamp":
+            q = q + sql.SQL(" where {}::date = %s").format(sql.Identifier(col))
+            params.append(convert_value("date", value))
+        else:
+            q = q + sql.SQL(" where {} = %s").format(sql.Identifier(col))
+            params.append(convert_value(ctype, value))
+    q = q + sql.SQL(" order by id limit %s")
+    params.append(limit)
+    with connect() as c:
+        return [r[0] for r in c.execute(q, params).fetchall()]
+
+
+def column_values(biz, tname, col, limit):
+    q = sql.SQL("select {} from {} where {} is not null limit %s").format(
+        sql.Identifier(col), _q(biz["pg_schema"], tname), sql.Identifier(col))
+    with connect() as c:
+        return [r[0] for r in c.execute(q, (limit,)).fetchall()]
+
+
+def null_count(biz, tname, col):
+    q = sql.SQL("select count(*) from {} where {} is null").format(
+        _q(biz["pg_schema"], tname), sql.Identifier(col))
+    with connect() as c:
+        return c.execute(q).fetchone()[0]
+
+
+def ext_apply(c, pg, design, a):
+    op, tname = a["op"], a["table"]
+    table = _tbl(design, tname)
+    if op == "delete_row":
+        c.execute(sql.SQL("delete from {} where id = any(%s)").format(_q(pg, tname)), [list(a["ids"])])
+    elif op == "change_type":
+        new = a["new_type"]
+        c.execute(sql.SQL("alter table {} alter column {} type {} using {}::{}").format(
+            _q(pg, tname), sql.Identifier(a["column"]), sql.SQL(TYPE_SQL[new]),
+            sql.Identifier(a["column"]), sql.SQL(TYPE_SQL[new])))
+        for x in table["columns"]:
+            if x["name"] == a["column"]:
+                x["type"] = new
+    elif op == "set_required":
+        c.execute(sql.SQL("alter table {} alter column {} {} not null").format(
+            _q(pg, tname), sql.Identifier(a["column"]), sql.SQL("set" if a["required"] else "drop")))
+        for x in table["columns"]:
+            if x["name"] == a["column"]:
+                x["required"] = bool(a["required"])
+    elif op == "drop_relation":
+        rows = c.execute(
+            "select c.conname from pg_constraint c join pg_attribute at on at.attrelid = c.conrelid "
+            "and at.attnum = any(c.conkey) where c.contype = 'f' and c.conrelid = to_regclass(%s) and at.attname = %s",
+            ('"%s"."%s"' % (pg, tname), a["column"])).fetchall()
+        if not rows:
+            raise ValueError("link not found")
+        for (name,) in rows:
+            c.execute(sql.SQL("alter table {} drop constraint {}").format(_q(pg, tname), sql.Identifier(name)))
+        for x in table["columns"]:
+            if x["name"] == a["column"]:
+                x["references"] = None
+    elif op == "adjust":
+        base = sql.SQL("update {} set {} = {} {} %s").format(
+            _q(pg, tname), sql.Identifier(a["column"]), sql.Identifier(a["column"]), sql.SQL(a["operator"]))
+        params = [Decimal(a["value"])]
+        if a.get("ids") is not None:
+            base = base + sql.SQL(" where id = any(%s)")
+            params.append(list(a["ids"]))
+        c.execute(base, params)
