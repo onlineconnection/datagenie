@@ -34,6 +34,13 @@
      "required": false,
      "primary_key": false,
      "references": null
+    },
+    {
+     "name": "teacher_id",
+     "type": "integer",
+     "required": true,
+     "primary_key": false,
+     "references": "teachers.id"
     }
    ]
   },
@@ -265,7 +272,7 @@
   }
  ],
  "title": "School",
- "icon": "🎓",
+ "icon": "\ud83c\udf93",
  "category": "Education",
  "description": "Students, teachers, classes, fees, results and attendance."
 }

@@ -593,3 +593,13 @@ app.register_blueprint(org_bp)
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+@app.route("/biz/<biz_id>/table/<table_name>/delete/<int:row_id>", methods=["POST"])
+@login_required
+def delete_table_row(biz_id, table_name):
+    biz = active_biz(biz_id)
+    table = next((t for t in biz["design"]["tables"] if t["name"] == table_name), None)
+    if table:
+        db.delete_row(biz, table, row_id)
+    return redirect(url_for("view_table", biz_id=biz_id, name=table_name))

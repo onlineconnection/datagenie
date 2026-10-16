@@ -297,6 +297,10 @@ def _check(biz, raw):
 def _local_actions(message, names):
     low = message.strip().rstrip(".!?").strip().lower()
     low = re.sub(r"^(please|can you|could you|kindly)\s+", "", low)
+    m = re.match(r"^(?:delete|drop|remove)\s+(?:the\s+)?(.+?)\s+(?:field|column)\s+(?:from|in|of)\s+(?:the\s+)?(.+?)(?:\s+table)?$", low)
+    if m and genie.find_table(m.group(2), names):
+        return [{"op": "drop_column", "table": genie.find_table(m.group(2), names), "column": genie.norm(m.group(1))}]
+
     m = re.match(r"^(?:delete|remove|clear|erase|wipe)\s+(?:all|every)\s+(?:the\s+)?(?:records|rows|data|entries)\s+(?:in|from|of)\s+(?:the\s+)?(.+?)(?:\s+table)?$", low)
     if m and genie.find_table(m.group(1), names):
         return [{"op": "delete_row", "table": genie.find_table(m.group(1), names), "all": True}]

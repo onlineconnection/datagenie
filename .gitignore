@@ -3,3 +3,9 @@ venv/
 __pycache__/
 github_token
 *.token
+status.txt
+probe.py
+probe_out.txt
+seed.py
+*.bak
+test_link.xlsx

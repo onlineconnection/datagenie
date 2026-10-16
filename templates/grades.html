@@ -1,0 +1,35 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grades</title><link rel="stylesheet" href="/static/style.css">
+<style>.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.row input,.row select{padding:8px;border:1px solid #ccc;border-radius:8px;font-size:15px}
+.row button{margin:0;padding:8px 14px}.ok{color:#0a7a2f}</style>
+</head><body><main class="card wide">
+<h1>Grades</h1>
+<p class="sub">Hello {{ m.display_name }}. Add or edit grades for students in your classes. <a href="{{ back }}">Back to portal</a></p>
+{% if err %}<p class="err">{{ err }}</p>{% endif %}
+{% if ok %}<p class="ok">Saved.</p>{% endif %}
+{% if not ready %}<p>This database has no results table with a student and a score.</p>
+{% elif not students %}<p>No students are assigned to you yet. Ask the admin to set you as the teacher of a class.</p>
+{% else %}
+<h3>Add a grade</h3>
+<form method="post" class="row"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <select name="student_id" required>{% for i, l in students %}<option value="{{ i }}">{{ l }}</option>{% endfor %}</select>
+  {% if has_subject %}<select name="subject_id" required>{% for i, l in subjects %}<option value="{{ i }}">{{ l }}</option>{% endfor %}</select>{% endif %}
+  {% if has_term %}<input name="term" placeholder="Term" required>{% endif %}
+  <input name="score" type="number" step="any" min="0" placeholder="Score" required>
+  <button type="submit">Save</button>
+</form>
+<h3>Grades you can edit</h3>
+{% for r in rows %}
+<form method="post" class="row"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="id" value="{{ r.id }}"><input type="hidden" name="student_id" value="{{ r.student_id }}">
+  <strong style="min-width:140px">{{ r.student }}</strong>
+  {% if has_subject %}<select name="subject_id">{% for i, l in subjects %}<option value="{{ i }}" {{ 'selected' if i == r.subject_id }}>{{ l }}</option>{% endfor %}</select>{% endif %}
+  {% if has_term %}<input name="term" value="{{ r.term }}" style="width:90px">{% endif %}
+  <input name="score" type="number" step="any" min="0" value="{{ r.score }}" style="width:90px">
+  <button type="submit">Update</button>
+</form>
+{% else %}<p>No grades yet.</p>{% endfor %}
+{% endif %}
+</main></body></html>

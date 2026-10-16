@@ -337,3 +337,15 @@ def answer(biz, message):
                     "errors": [], "headers": None, "rows": None}
     headers, rows, errors = run(biz, q)
     return {"reply": "" if errors else say, "errors": errors, "headers": headers, "rows": rows}
+
+
+# ---- quick local patterns (no AI) ----
+_orig_local = local
+
+
+def local(message, biz):
+    r = _orig_local(message, biz)
+    if r:
+        return r
+    import quick
+    return quick.match(message, biz)

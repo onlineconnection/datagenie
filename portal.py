@@ -1,3 +1,4 @@
+import scope
 import re, secrets, time
 from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, abort, flash, session
@@ -162,6 +163,9 @@ def visible(biz, m):
     tables = biz["design"]["tables"]
     if m["access"] == "view_all":
         return [(t, None) for t in tables]
+    ti = scope.teacher_info(biz, m)
+    if ti:
+        return [(t, ("scoped", w, p)) for t, w, p in scope.rules(biz, m, ti)]
     rt, rid = m["record_table"], m["record_id"]
     if not rt or rid is None:
         return []
@@ -191,7 +195,8 @@ def portal(biz_id):
         tname = names[0]
     table, cols = next((t, c) for t, c in vis if t["name"] == tname)
     term = (request.args.get("q") or "").strip()[:100]
-    rows = orgdb.portal_rows(biz, table, cols, m["record_id"], term)
+    rows = (scope.rows(biz, table, cols, term) if isinstance(cols, tuple)
+            else orgdb.portal_rows(biz, table, cols, m["record_id"], term))
     return render_template("portal.html", biz=biz, m=m, tabs=names, table=table, rows=rows, q=term,
                            opts=db.fk_options(biz, table))
 
@@ -342,3 +347,41 @@ def del_member(biz, member_id):
     orgdb.delete_member(biz["id"], member_id)
     flash("Member removed.", "ok")
     return back(biz)
+
+
+
+# ---------- teacher grades ----------
+@bp.app_context_processor
+def _grades_link():
+    try:
+        bid = (request.view_args or {}).get("biz_id")
+        m = current_member(bid) if bid else None
+        if m and scope.teacher_info(public_biz(bid), m):
+            return {"grades_url": url_for("org.grades", biz_id=bid)}
+    except Exception:
+        pass
+    return {}
+
+
+@bp.route("/o/<biz_id>/grades", methods=["GET", "POST"])
+def grades(biz_id):
+    m = current_member(biz_id)
+    if not m:
+        return redirect(url_for("org.org_page", biz_id=biz_id))
+    biz = public_biz(biz_id)
+    info = scope.teacher_info(biz, m)
+    if not info:
+        return redirect(url_for("org.portal", biz_id=biz_id))
+    err = ""
+    if request.method == "POST":
+        try:
+            scope.save_grade(biz, m, info, request.form)
+            return redirect(url_for("org.grades", biz_id=biz_id, ok=1))
+        except ValueError as e:
+            err = str(e)
+        except Exception as e:
+            print("grade save failed:", type(e).__name__, e)
+            err = "Could not save. Please check the values."
+    ctx = scope.grade_page(biz, m, info)
+    return render_template("grades.html", m=m, err=err, ok=request.args.get("ok"),
+                           back=url_for("org.portal", biz_id=biz_id), **ctx)
