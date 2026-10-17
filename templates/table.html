@@ -23,10 +23,37 @@
     {% endfor %}
     </div>
     <button type="submit">Save</button>
+    <a class="btn ghost" href="#fieldsbox" style="margin-left:8px" onclick="var d=document.getElementById('fieldsbox');d.open=true;d.scrollIntoView({behavior:'smooth'});return false;">Edit</a>
   </form>
 </div>
 
-<div class="card scroll">
+<div class="card">
+  <details id="fieldsbox">
+    <summary><strong>Edit fields</strong> <span class="sub">(add or remove fields in {{ table.name | pretty }})</span></summary>
+    <div style="margin-top:12px">
+    {% for col in table.columns if not col.primary_key and col.name != 'id' %}
+      <form method="post" action="{{ url_for('field_remove', biz_id=biz.id, tname=table.name) }}" style="display:flex;gap:10px;align-items:center;margin:6px 0" onsubmit="return confirm('Remove this field and all the data in it?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="column" value="{{ col.name }}">
+        <span style="min-width:180px">{{ col.name | pretty }} <small>({{ col.type }})</small></span>
+        <button class="del" type="submit">Remove</button>
+      </form>
+    {% endfor %}
+    <form method="post" action="{{ url_for('field_add', biz_id=biz.id, tname=table.name) }}" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input name="name" placeholder="New field name, e.g. email" required>
+      <select name="type">
+        <option value="text">Text</option><option value="integer">Whole number</option>
+        <option value="numeric">Number / money</option><option value="boolean">Yes / No</option>
+        <option value="date">Date</option><option value="timestamp">Date and time</option>
+      </select>
+      <button type="submit">Add field</button>
+    </form>
+    </div>
+  </details>
+</div>
+
+<div class="card scroll" id="records">
   <strong>{{ table.name | pretty }} records ({{ rows | length }})</strong>
   {% if rows %}
   <table>

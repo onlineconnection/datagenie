@@ -587,6 +587,50 @@ def edit_record(biz_id, tname, row_id):
                            opts=db.fk_options(biz, table))
 
 
+
+def _field_apply(biz_id, biz, raw):
+    actions, errors, _ = genie.check(biz, raw)
+    if errors or not actions:
+        flash(" ".join(errors) or "Nothing to change.", "err")
+        return False
+    try:
+        db.apply_actions(biz_id, actions)
+    except Exception as e:
+        print("field change failed:", type(e).__name__, e)
+        flash("Could not change the fields. Nothing was changed.", "err")
+        return False
+    flash("Fields updated.", "ok")
+    return True
+
+
+@app.route("/dashboard/<biz_id>/<tname>/field/add", methods=["POST"])
+@login_required
+def field_add(biz_id, tname):
+    biz = active_biz(biz_id)
+    db.get_table(biz, tname) or abort(404)
+    name = genie.norm(request.form.get("name", ""))
+    ctype = request.form.get("type", "text")
+    if ctype not in ("text", "integer", "numeric", "boolean", "date", "timestamp") or not name:
+        flash("Enter a field name and choose a type.", "err")
+    else:
+        _field_apply(biz_id, biz, [{"op": "add_column", "table": tname,
+                                    "column": {"name": name, "type": ctype, "required": False, "references": None}}])
+    return redirect(url_for("table_page", biz_id=biz_id, tname=tname))
+
+
+@app.route("/dashboard/<biz_id>/<tname>/field/remove", methods=["POST"])
+@login_required
+def field_remove(biz_id, tname):
+    biz = active_biz(biz_id)
+    table = db.get_table(biz, tname) or abort(404)
+    col = request.form.get("column", "")
+    if col not in [c["name"] for c in table["columns"] if not c.get("primary_key") and c["name"] != "id"]:
+        flash("That field does not exist.", "err")
+    else:
+        _field_apply(biz_id, biz, [{"op": "drop_column", "table": tname, "column": col}])
+    return redirect(url_for("table_page", biz_id=biz_id, tname=tname))
+
+
 from portal import bp as org_bp
 app.register_blueprint(org_bp)
 
